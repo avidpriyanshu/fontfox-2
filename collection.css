@@ -226,9 +226,10 @@ textarea {
 }
 
 .cardHead {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 16px;
   min-width: 0;
   margin-bottom: 22px;
 }
@@ -252,9 +253,23 @@ textarea {
 }
 
 .badge {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  max-width: 180px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
   color: var(--muted);
+  background: hsl(0 0% 10%);
+  font-family: var(--mono);
   font-size: 12px;
   font-weight: 600;
+  line-height: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sample {
