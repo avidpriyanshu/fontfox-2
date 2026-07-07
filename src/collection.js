@@ -1,6 +1,8 @@
 const collectionState = {
   collection: null,
   editMode: false,
+  collections: [],
+  contextCollection: null,
   selectedFontKeys: new Set(),
   viewMode: localStorage.getItem("fontfox.collectionViewMode") || "list"
 };
@@ -20,6 +22,8 @@ const collectionEls = {
   message: document.querySelector("#message")
 };
 
+const collectionMenu = createCollectionContextMenu();
+
 async function initCollectionPage() {
   const id = new URL(location.href).searchParams.get("id");
   if (!id) return showCollectionMessage("Missing collection id.");
@@ -31,6 +35,10 @@ async function initCollectionPage() {
   collectionEls.previewText.addEventListener("input", renderFontCards);
   collectionEls.previewSizeRange.addEventListener("input", syncPreviewSizeFromRange);
   collectionEls.clearPreview.addEventListener("click", clearPreview);
+  document.addEventListener("click", closeCollectionContextMenu);
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeCollectionContextMenu();
+  });
 }
 
 function renderCollectionPage() {
@@ -311,6 +319,7 @@ async function exportCollectionText() {
 
 async function renderOtherCollections() {
   const collections = await BookmarkStore.listCollections();
+  collectionState.collections = collections;
   collectionEls.otherCollections.textContent = "";
 
   if (!collections.length) {
@@ -334,6 +343,10 @@ async function renderOtherCollections() {
       if (isCurrent) return;
       location.href = ext.runtime.getURL(`collection.html?id=${encodeURIComponent(collection.id)}`);
     });
+    button.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+      openCollectionContextMenu(collection, event.clientX, event.clientY);
+    });
 
     const name = document.createElement("span");
     name.textContent = collection.title;
@@ -344,6 +357,89 @@ async function renderOtherCollections() {
     button.append(name, count);
     collectionEls.otherCollections.append(button);
   });
+}
+
+function createCollectionContextMenu() {
+  const menu = document.createElement("div");
+  menu.className = "contextMenu";
+  menu.hidden = true;
+
+  const rename = document.createElement("button");
+  rename.type = "button";
+  rename.textContent = "Rename";
+  rename.addEventListener("click", renameContextCollection);
+
+  const remove = document.createElement("button");
+  remove.type = "button";
+  remove.className = "dangerMenuItem";
+  remove.textContent = "Delete";
+  remove.addEventListener("click", deleteContextCollection);
+
+  menu.append(rename, remove);
+  document.body.append(menu);
+  return menu;
+}
+
+function openCollectionContextMenu(collection, x, y) {
+  collectionState.contextCollection = collection;
+  collectionMenu.hidden = false;
+  const menuRect = collectionMenu.getBoundingClientRect();
+  const left = Math.min(x, window.innerWidth - menuRect.width - 8);
+  const top = Math.min(y, window.innerHeight - menuRect.height - 8);
+  collectionMenu.style.left = `${Math.max(8, left)}px`;
+  collectionMenu.style.top = `${Math.max(8, top)}px`;
+}
+
+function closeCollectionContextMenu() {
+  collectionMenu.hidden = true;
+  collectionState.contextCollection = null;
+}
+
+async function renameContextCollection() {
+  const collection = collectionState.contextCollection;
+  closeCollectionContextMenu();
+  if (!collection) return;
+
+  const nextTitle = prompt("Rename collection", collection.title);
+  if (nextTitle === null) return;
+  const title = nextTitle.trim();
+  if (!title || title === collection.title) return;
+
+  await BookmarkStore.renameCollection(collection, title);
+  if (collection.id === collectionState.collection.id) {
+    collectionState.collection = await BookmarkStore.getCollection(collection.id);
+    renderCollectionPage();
+  } else {
+    renderOtherCollections();
+  }
+  showCollectionMessage("Collection renamed.");
+}
+
+async function deleteContextCollection() {
+  const collection = collectionState.contextCollection;
+  closeCollectionContextMenu();
+  if (!collection) return;
+  if (!confirm(`Delete "${collection.title}"?`)) return;
+
+  await BookmarkStore.deleteCollection(collection);
+  if (collection.id !== collectionState.collection.id) {
+    renderOtherCollections();
+    showCollectionMessage("Collection deleted.");
+    return;
+  }
+
+  const remaining = (await BookmarkStore.listCollections()).filter((item) => item.id !== collection.id);
+  if (remaining.length) {
+    location.href = ext.runtime.getURL(`collection.html?id=${encodeURIComponent(remaining[0].id)}`);
+  } else {
+    collectionEls.fontGrid.textContent = "";
+    collectionEls.collectionTitle.textContent = "No collections";
+    collectionEls.collectionMeta.textContent = "";
+    collectionEls.viewToggle.textContent = "";
+    collectionEls.collectionActions.textContent = "";
+    renderOtherCollections();
+    showCollectionMessage("Collection deleted.");
+  }
 }
 
 function entryKey(entry) {
