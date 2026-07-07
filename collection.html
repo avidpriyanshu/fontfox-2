@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>FontFox Collection</title>
+    <link rel="stylesheet" href="collection.css">
+  </head>
+  <body>
+    <main class="page">
+      <nav class="topbar">
+        <div class="brand">
+          <span class="mark">Ff</span>
+          <span>FontFox</span>
+        </div>
+        <div id="topActions" class="topActions"></div>
+      </nav>
+
+      <section class="hero">
+        <p id="collectionMeta" class="eyebrow"></p>
+        <div class="previewControl">
+          <label for="previewText">Preview text</label>
+          <textarea id="previewText">Whereas recognition of the inherent dignity</textarea>
+        </div>
+      </section>
+
+      <section id="fontGrid" class="grid" aria-label="Font families"></section>
+      <p id="message" class="message" role="status"></p>
+    </main>
+
+    <script src="src/browser-api.js"></script>
+    <script src="src/font-sources.js"></script>
+    <script src="src/bookmark-store.js"></script>
+    <script src="src/collection.js"></script>
+  </body>
+</html>

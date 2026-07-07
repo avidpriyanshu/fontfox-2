@@ -20,6 +20,7 @@
 
   globalThis.ext = {
     bookmarks: promisifyNamespace(chrome.bookmarks),
+    runtime: chrome.runtime,
     storage: {
       local: promisifyNamespace(chrome.storage.local)
     },

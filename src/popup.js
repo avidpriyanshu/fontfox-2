@@ -287,7 +287,7 @@ function renderEditor(collection) {
   open.type = "button";
   open.className = "secondary";
   open.textContent = "Open collection";
-  open.addEventListener("click", () => ext.tabs.create({ url: collection.url }));
+  open.addEventListener("click", () => openCollection(collection));
 
   const deleteButton = document.createElement("button");
   deleteButton.type = "button";
@@ -354,7 +354,11 @@ async function toggleCurrentFonts(collection) {
 }
 
 async function openCollection(collection) {
-  await ext.tabs.create({ url: collection.url });
+  const hasProviderFonts = collection.entries.some((entry) => entry.source !== "google-fonts");
+  const url = hasProviderFonts
+    ? ext.runtime.getURL(`collection.html?id=${encodeURIComponent(collection.id)}`)
+    : collection.url;
+  await ext.tabs.create({ url });
 }
 
 function currentFontsAreSaved(collection) {

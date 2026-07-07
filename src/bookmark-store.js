@@ -19,24 +19,14 @@ const BookmarkStore = (() => {
     const metadata = await readMetadata();
     return children
       .filter((node) => node.url)
-      .map((node) => {
-        const parsed = FontSources.parseSavedCollection(node.url);
-        const extraEntries = metadata[node.id]?.entries || [];
-        const googleEntries = parsed ? parsed.families.map((family) => ({
-          family,
-          source: "google-fonts",
-          sourceName: "Google Fonts",
-          sourceUrl: `https://fonts.google.com/specimen/${encodeURIComponent(family).replace(/%20/g, "+")}`
-        })) : [];
-        const entries = dedupeEntries([...googleEntries, ...extraEntries]);
-        return {
-          id: node.id,
-          title: node.title,
-          url: node.url,
-          families: entries.map((entry) => entry.family),
-          entries
-        };
-      });
+      .map((node) => normalizeCollectionNode(node, metadata));
+  }
+
+  async function getCollection(id) {
+    const [node] = await ext.bookmarks.get(id);
+    if (!node || !node.url) return null;
+    const metadata = await readMetadata();
+    return normalizeCollectionNode(node, metadata);
   }
 
   async function createCollection(title, fonts = []) {
@@ -131,8 +121,28 @@ const BookmarkStore = (() => {
     });
   }
 
+  function normalizeCollectionNode(node, metadata) {
+    const parsed = FontSources.parseSavedCollection(node.url);
+    const extraEntries = metadata[node.id]?.entries || [];
+    const googleEntries = parsed ? parsed.families.map((family) => ({
+      family,
+      source: "google-fonts",
+      sourceName: "Google Fonts",
+      sourceUrl: `https://fonts.google.com/specimen/${encodeURIComponent(family).replace(/%20/g, "+")}`
+    })) : [];
+    const entries = dedupeEntries([...googleEntries, ...extraEntries]);
+    return {
+      id: node.id,
+      title: node.title,
+      url: node.url,
+      families: entries.map((entry) => entry.family),
+      entries
+    };
+  }
+
   return {
     listCollections,
+    getCollection,
     createCollection,
     addFont,
     removeFont,
