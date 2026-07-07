@@ -19,6 +19,53 @@ const FontSources = (() => {
     return null;
   }
 
+  function titleCaseSlug(slug) {
+    return decodeFamily(slug)
+      .split(/[-\s]+/)
+      .filter(Boolean)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  }
+
+  function knownCoTypeSummary(family) {
+    if (family.toLowerCase() !== "ambit") return null;
+    return {
+      category: "Sans serif",
+      designer: "Mark Bloom",
+      foundry: "CoType Foundry",
+      styles: "14 styles",
+      formats: ["OTF", "WOFF", "WOFF2", "Variable"],
+      tags: ["eccentric", "grotesque", "contemporary", "branding", "editorial"],
+      summary: "Ambit is an eccentric contemporary sans serif inspired by early grotesques, with distinctive curly details and a strong branding/editorial personality."
+    };
+  }
+
+  function parseCoTypeUrl(urlText) {
+    const url = new URL(urlText);
+    const parts = url.pathname.split("/").filter(Boolean);
+
+    if (url.hostname !== "cotypefoundry.com" || parts[0] !== "our-fonts" || !parts[1]) {
+      return null;
+    }
+
+    const family = titleCaseSlug(parts[1]);
+    const known = knownCoTypeSummary(family);
+    return {
+      source: "cotype-foundry",
+      sourceName: "CoType Foundry",
+      sourceUrl: url.href,
+      family,
+      families: [family],
+      entries: [{
+        family,
+        source: "cotype-foundry",
+        sourceName: "CoType Foundry",
+        sourceUrl: url.href,
+        ...known
+      }]
+    };
+  }
+
   function parseCollectionUrl(urlText) {
     const url = new URL(urlText);
 
@@ -50,7 +97,7 @@ const FontSources = (() => {
 
   function parseCurrentPage(urlText) {
     try {
-      return parseGoogleSpecimenUrl(urlText);
+      return parseGoogleSpecimenUrl(urlText) || parseCoTypeUrl(urlText);
     } catch {
       return null;
     }

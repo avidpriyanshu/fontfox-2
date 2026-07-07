@@ -23,7 +23,7 @@ function bindEvents() {
   els.createCollection.addEventListener("click", () => {
     state.draftCollection = {
       title: "",
-      families: state.detected ? state.detected.families : []
+      fonts: state.detected ? detectedEntries() : []
     };
     state.expandedId = null;
     renderCollections();
@@ -88,7 +88,7 @@ function renderDraftCollection(draft) {
 
   const count = document.createElement("span");
   count.className = "fontCount";
-  count.textContent = `${draft.families.length} ${draft.families.length === 1 ? "font" : "fonts"}`;
+  count.textContent = `${draft.fonts.length} ${draft.fonts.length === 1 ? "font" : "fonts"}`;
 
   meta.append(input, count);
 
@@ -135,10 +135,10 @@ function renderDraftCollection(draft) {
 async function saveDraftCollection(rawTitle) {
   if (!state.draftCollection) return;
   const title = rawTitle.trim() || defaultCollectionName();
-  const families = state.draftCollection.families;
+  const fonts = state.draftCollection.fonts;
   state.draftCollection = null;
-  await BookmarkStore.createCollection(title, families);
-  showMessage(families.length ? "Collection created with this font." : "Collection created.");
+  await BookmarkStore.createCollection(title, fonts);
+  showMessage(fonts.length ? "Collection created with this font." : "Collection created.");
   await renderCollections();
 }
 
@@ -243,6 +243,17 @@ function renderEditor(collection) {
       const name = document.createElement("span");
       name.textContent = family;
 
+      const entry = collection.entries.find((item) => item.family === family);
+      const source = document.createElement("span");
+      source.className = "sourceBadge";
+      source.textContent = entry?.sourceName || "Font";
+
+      const summary = entry?.summary ? document.createElement("p") : null;
+      if (summary) {
+        summary.className = "fontSummary";
+        summary.textContent = entry.summary;
+      }
+
       const remove = document.createElement("button");
       remove.type = "button";
       remove.className = "removeIconButton";
@@ -254,7 +265,12 @@ function renderEditor(collection) {
         await renderCollections();
       });
 
-      row.append(name, remove);
+      const details = document.createElement("div");
+      details.className = "fontDetails";
+      details.append(name, source);
+      if (summary) details.append(summary);
+
+      row.append(details, remove);
       fontList.append(row);
     });
   } else {
@@ -326,11 +342,11 @@ async function toggleCurrentFonts(collection) {
     const removeSet = new Set(state.detected.families);
     await BookmarkStore.setFonts(
       collection,
-      collection.families.filter((family) => !removeSet.has(family))
+      collection.entries.filter((entry) => !removeSet.has(entry.family))
     );
     showMessage("Font removed.");
   } else {
-    await BookmarkStore.setFonts(collection, [...collection.families, ...state.detected.families]);
+    await BookmarkStore.setFonts(collection, [...collection.entries, ...detectedEntries()]);
     showMessage("Font added.");
   }
 
@@ -344,6 +360,15 @@ async function openCollection(collection) {
 function currentFontsAreSaved(collection) {
   return Boolean(state.detected)
     && state.detected.families.every((family) => collection.families.includes(family));
+}
+
+function detectedEntries() {
+  return state.detected?.entries || state.detected?.families.map((family) => ({
+    family,
+    source: state.detected.source,
+    sourceName: state.detected.source === "google-fonts" ? "Google Fonts" : state.detected.source,
+    sourceUrl: state.detected.sourceUrl
+  })) || [];
 }
 
 function actionLabel(collection) {
