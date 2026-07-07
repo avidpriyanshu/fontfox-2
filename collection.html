@@ -20,12 +20,7 @@
             <button id="clearPreview" class="clearTag" type="button">Clear</button>
           </div>
           <div class="sizeControl">
-            <select id="previewSize" aria-label="Preview size">
-              <option value="32">32px</option>
-              <option value="40" selected>40px</option>
-              <option value="48">48px</option>
-              <option value="64">64px</option>
-            </select>
+            <span id="previewSizeLabel" class="sizeValue">40px</span>
             <input id="previewSizeRange" type="range" min="24" max="72" value="40" aria-label="Preview size slider">
           </div>
         </div>
@@ -41,7 +36,10 @@
         </nav>
 
         <section class="hero">
-          <h1 id="collectionTitle" class="collectionTitle"></h1>
+          <div class="titleBar">
+            <h1 id="collectionTitle" class="collectionTitle"></h1>
+            <div id="collectionActions" class="collectionActions"></div>
+          </div>
           <p id="collectionMeta" class="eyebrow"></p>
         </section>
 

@@ -1,13 +1,16 @@
 const collectionState = {
-  collection: null
+  collection: null,
+  editMode: false,
+  selectedFontKeys: new Set()
 };
 
 const collectionEls = {
   topActions: document.querySelector("#topActions"),
   collectionTitle: document.querySelector("#collectionTitle"),
+  collectionActions: document.querySelector("#collectionActions"),
   collectionMeta: document.querySelector("#collectionMeta"),
   previewText: document.querySelector("#previewText"),
-  previewSize: document.querySelector("#previewSize"),
+  previewSizeLabel: document.querySelector("#previewSizeLabel"),
   previewSizeRange: document.querySelector("#previewSizeRange"),
   clearPreview: document.querySelector("#clearPreview"),
   fontGrid: document.querySelector("#fontGrid"),
@@ -24,21 +27,65 @@ async function initCollectionPage() {
 
   renderCollectionPage();
   collectionEls.previewText.addEventListener("input", renderFontCards);
-  collectionEls.previewSize.addEventListener("change", syncPreviewSizeFromSelect);
   collectionEls.previewSizeRange.addEventListener("input", syncPreviewSizeFromRange);
   collectionEls.clearPreview.addEventListener("click", clearPreview);
 }
 
 function renderCollectionPage() {
   const collection = collectionState.collection;
-  collectionEls.collectionTitle.textContent = collection.title;
   collectionEls.collectionMeta.textContent =
     `${collection.entries.length} ${collection.entries.length === 1 ? "font family" : "font families"}`;
 
   collectionEls.topActions.textContent = "";
+  renderCollectionHeader();
   loadGoogleFontCss(collection.entries);
   renderFontCards();
   renderOtherCollections();
+}
+
+function renderCollectionHeader() {
+  collectionEls.collectionTitle.textContent = "";
+  collectionEls.collectionActions.textContent = "";
+
+  if (collectionState.editMode) {
+    const titleInput = document.createElement("input");
+    titleInput.className = "titleInput";
+    titleInput.value = collectionState.collection.title;
+    titleInput.setAttribute("aria-label", "Collection name");
+    titleInput.addEventListener("blur", () => saveCollectionTitle(titleInput.value));
+    titleInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") titleInput.blur();
+      if (event.key === "Escape") {
+        titleInput.value = collectionState.collection.title;
+        titleInput.blur();
+      }
+    });
+    collectionEls.collectionTitle.append(titleInput);
+  } else {
+    collectionEls.collectionTitle.textContent = collectionState.collection.title;
+  }
+
+  const edit = iconButton(collectionState.editMode ? "Close editor" : "Edit collection", collectionState.editMode ? iconClose() : iconPencil());
+  edit.addEventListener("click", () => {
+    collectionState.editMode = !collectionState.editMode;
+    collectionState.selectedFontKeys.clear();
+    renderCollectionPage();
+  });
+  collectionEls.collectionActions.append(edit);
+
+  const exportButton = iconButton("Export collection", iconExport());
+  exportButton.addEventListener("click", exportCollectionText);
+  collectionEls.collectionActions.append(exportButton);
+
+  if (collectionState.editMode) {
+    const deleteSelected = document.createElement("button");
+    deleteSelected.type = "button";
+    deleteSelected.className = "button dangerText";
+    deleteSelected.textContent = "Delete selected";
+    deleteSelected.disabled = collectionState.selectedFontKeys.size === 0;
+    deleteSelected.addEventListener("click", deleteSelectedFonts);
+    collectionEls.collectionActions.append(deleteSelected);
+  }
 }
 
 function renderFontCards() {
@@ -53,13 +100,32 @@ function renderFontCards() {
 }
 
 function renderFontCard(entry, sample) {
+  const fontKey = entryKey(entry);
   const card = document.createElement("article");
   card.className = "fontRow";
+  if (collectionState.editMode) card.classList.add("isEditing");
 
   const head = document.createElement("header");
   head.className = "cardHead";
 
   const titleWrap = document.createElement("div");
+  titleWrap.className = "fontTitleWrap";
+
+  if (collectionState.editMode) {
+    const select = document.createElement("input");
+    select.type = "checkbox";
+    select.className = "fontSelect";
+    select.checked = collectionState.selectedFontKeys.has(fontKey);
+    select.setAttribute("aria-label", `Select ${entry.family}`);
+    select.addEventListener("change", () => {
+      if (select.checked) collectionState.selectedFontKeys.add(fontKey);
+      else collectionState.selectedFontKeys.delete(fontKey);
+      renderCollectionHeader();
+    });
+    titleWrap.append(select);
+  }
+
+  const titleText = document.createElement("div");
   const name = document.createElement("h2");
   name.className = "fontName";
   name.textContent = entry.family;
@@ -68,8 +134,9 @@ function renderFontCard(entry, sample) {
   meta.className = "fontMeta";
   meta.textContent = fontMeta(entry);
 
-  titleWrap.append(name);
-  if (meta.textContent) titleWrap.append(meta);
+  titleText.append(name);
+  if (meta.textContent) titleText.append(meta);
+  titleWrap.append(titleText);
 
   const badge = document.createElement("span");
   badge.className = "badge";
@@ -160,26 +227,48 @@ function loadGoogleFontCss(entries) {
   document.head.append(link);
 }
 
-function syncPreviewSizeFromSelect() {
-  collectionEls.previewSizeRange.value = collectionEls.previewSize.value;
-  renderFontCards();
-}
-
 function syncPreviewSizeFromRange() {
-  collectionEls.previewSize.value = nearestSizeOption(collectionEls.previewSizeRange.value);
+  collectionEls.previewSizeLabel.textContent = `${collectionEls.previewSizeRange.value}px`;
   renderFontCards();
-}
-
-function nearestSizeOption(value) {
-  const sizes = [...collectionEls.previewSize.options].map((option) => Number(option.value));
-  return String(sizes.reduce((closest, size) => (
-    Math.abs(size - value) < Math.abs(closest - value) ? size : closest
-  ), sizes[0]));
 }
 
 function clearPreview() {
   collectionEls.previewText.value = "";
   renderFontCards();
+}
+
+async function saveCollectionTitle(title) {
+  const nextTitle = title.trim() || "Untitled collection";
+  if (nextTitle === collectionState.collection.title) return;
+  await BookmarkStore.renameCollection(collectionState.collection, nextTitle);
+  collectionState.collection = await BookmarkStore.getCollection(collectionState.collection.id);
+  renderCollectionPage();
+  showCollectionMessage("Collection renamed.");
+}
+
+async function deleteSelectedFonts() {
+  if (!collectionState.selectedFontKeys.size) return;
+  const entries = collectionState.collection.entries.filter((entry) => !collectionState.selectedFontKeys.has(entryKey(entry)));
+  await BookmarkStore.setFonts(collectionState.collection, entries);
+  collectionState.collection = await BookmarkStore.getCollection(collectionState.collection.id);
+  collectionState.selectedFontKeys.clear();
+  renderCollectionPage();
+  showCollectionMessage("Selected fonts deleted.");
+}
+
+async function exportCollectionText() {
+  const lines = [
+    collectionState.collection.title,
+    `${collectionState.collection.entries.length} ${collectionState.collection.entries.length === 1 ? "font" : "fonts"}`,
+    "",
+    ...collectionState.collection.entries.map((entry) => {
+      const parts = [entry.family, sourceDetail(entry)];
+      if (entry.sourceUrl) parts.push(entry.sourceUrl);
+      return parts.join(" - ");
+    })
+  ];
+  await navigator.clipboard.writeText(lines.join("\n"));
+  showCollectionMessage("Collection copied.");
 }
 
 async function renderOtherCollections() {
@@ -219,6 +308,10 @@ async function renderOtherCollections() {
   });
 }
 
+function entryKey(entry) {
+  return `${entry.source || "font"}:${entry.family}`;
+}
+
 function iconButton(label, icon) {
   const button = document.createElement("button");
   button.type = "button";
@@ -226,6 +319,18 @@ function iconButton(label, icon) {
   button.setAttribute("aria-label", label);
   button.innerHTML = icon;
   return button;
+}
+
+function iconPencil() {
+  return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="m16.5 3.5 4 4L7 21H3v-4L16.5 3.5z"></path></svg>`;
+}
+
+function iconClose() {
+  return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>`;
+}
+
+function iconExport() {
+  return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg>`;
 }
 
 function iconExternal() {
