@@ -4,6 +4,7 @@ const collectionState = {
 
 const collectionEls = {
   topActions: document.querySelector("#topActions"),
+  collectionTitle: document.querySelector("#collectionTitle"),
   collectionMeta: document.querySelector("#collectionMeta"),
   previewText: document.querySelector("#previewText"),
   previewSize: document.querySelector("#previewSize"),
@@ -11,6 +12,7 @@ const collectionEls = {
   resetPreview: document.querySelector("#resetPreview"),
   clearPreview: document.querySelector("#clearPreview"),
   fontGrid: document.querySelector("#fontGrid"),
+  otherCollections: document.querySelector("#otherCollections"),
   message: document.querySelector("#message")
 };
 
@@ -31,26 +33,13 @@ async function initCollectionPage() {
 
 function renderCollectionPage() {
   const collection = collectionState.collection;
+  collectionEls.collectionTitle.textContent = collection.title;
   collectionEls.collectionMeta.textContent =
-    `${collection.title} · ${collection.entries.length} ${collection.entries.length === 1 ? "font family" : "font families"}`;
+    `${collection.entries.length} ${collection.entries.length === 1 ? "font family" : "font families"}`;
 
   collectionEls.topActions.textContent = "";
-  const googleFamilies = collection.entries
-    .filter((entry) => entry.source === "google-fonts")
-    .map((entry) => entry.family);
-
-  if (googleFamilies.length) {
-    const openGoogle = document.createElement("button");
-    openGoogle.type = "button";
-    openGoogle.className = "button";
-    openGoogle.textContent = "Open Google fonts";
-    openGoogle.addEventListener("click", () => {
-      location.href = FontSources.buildGooglePreviewUrl(googleFamilies);
-    });
-    collectionEls.topActions.append(openGoogle);
-  }
-
   renderFontCards();
+  renderOtherCollections();
 }
 
 function renderFontCards() {
@@ -66,7 +55,7 @@ function renderFontCards() {
 
 function renderFontCard(entry, sample, index) {
   const card = document.createElement("article");
-  card.className = "fontCard";
+  card.className = "fontRow";
   if (index === 0) card.classList.add("highlight");
 
   const head = document.createElement("header");
@@ -81,7 +70,8 @@ function renderFontCard(entry, sample, index) {
   meta.className = "fontMeta";
   meta.textContent = fontMeta(entry);
 
-  titleWrap.append(name, meta);
+  titleWrap.append(name);
+  if (meta.textContent) titleWrap.append(meta);
 
   const badge = document.createElement("span");
   badge.className = "badge";
@@ -89,14 +79,13 @@ function renderFontCard(entry, sample, index) {
   head.append(titleWrap, badge);
 
   const preview = document.createElement("p");
-  preview.className = "sample";
-  preview.style.fontFamily = fontCssStack(entry);
-  preview.textContent = sample;
-
-  const note = entry.source === "google-fonts" ? null : document.createElement("p");
-  if (note) {
-    note.className = "note";
-    note.textContent = "Preview uses this font if it is installed or available to the browser; otherwise it falls back.";
+  if (canRenderPreview(entry)) {
+    preview.className = "sample";
+    preview.style.fontFamily = fontCssStack(entry);
+    preview.textContent = sample;
+  } else {
+    preview.className = "unavailablePreview";
+    preview.textContent = "Preview unavailable because FontFox does not have this font file. Open the source to view or license the font.";
   }
 
   const foot = document.createElement("footer");
@@ -125,13 +114,12 @@ function renderFontCard(entry, sample, index) {
   actions.append(copy);
 
   foot.append(css, actions);
-  card.append(head, preview);
-  if (note) card.append(note);
-  card.append(foot);
+  card.append(head, preview, foot);
   return card;
 }
 
 function fontMeta(entry) {
+  if (entry.source === "google-fonts") return "";
   if (entry.summary) return entry.summary;
   if (entry.designer && entry.foundry) return `${entry.designer} · ${entry.foundry}`;
   if (entry.designer) return entry.designer;
@@ -139,8 +127,13 @@ function fontMeta(entry) {
 }
 
 function sourceDetail(entry) {
-  if (entry.styles) return `${entry.sourceName || entry.source} · ${entry.styles}`;
   return entry.sourceName || entry.source || "Font";
+}
+
+function canRenderPreview(entry) {
+  if (entry.fontFaceUrl) return true;
+  if (!document.fonts || !document.fonts.check) return false;
+  return document.fonts.check(`16px "${entry.family}"`);
 }
 
 function fontCssStack(entry) {
@@ -176,6 +169,38 @@ function resetPreview() {
 function clearPreview() {
   collectionEls.previewText.value = "";
   renderFontCards();
+}
+
+async function renderOtherCollections() {
+  const collections = await BookmarkStore.listCollections();
+  const others = collections.filter((collection) => collection.id !== collectionState.collection.id);
+  collectionEls.otherCollections.textContent = "";
+
+  if (!others.length) {
+    const empty = document.createElement("p");
+    empty.className = "message";
+    empty.textContent = "No other collections yet.";
+    collectionEls.otherCollections.append(empty);
+    return;
+  }
+
+  others.forEach((collection) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "collectionLink";
+    button.addEventListener("click", () => {
+      location.href = ext.runtime.getURL(`collection.html?id=${encodeURIComponent(collection.id)}`);
+    });
+
+    const name = document.createElement("span");
+    name.textContent = collection.title;
+
+    const count = document.createElement("span");
+    count.textContent = `${collection.entries.length} ${collection.entries.length === 1 ? "font" : "fonts"}`;
+
+    button.append(name, count);
+    collectionEls.otherCollections.append(button);
+  });
 }
 
 function iconButton(label, icon) {

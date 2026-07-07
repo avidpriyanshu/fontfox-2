@@ -40,15 +40,17 @@ button {
 .page {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 230px 1fr;
+  grid-template-columns: 315px minmax(0, 1fr);
 }
 
 .sidebar {
   position: sticky;
   top: 0;
   height: 100vh;
+  min-width: 0;
   padding: 24px 14px;
   background: var(--sidebar);
+  overflow: hidden;
 }
 
 .sidebarTop {
@@ -78,6 +80,8 @@ label {
 
 textarea {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 118px;
   resize: vertical;
   padding: 14px;
@@ -93,6 +97,7 @@ textarea {
   grid-template-columns: 64px 1fr;
   gap: 10px;
   align-items: center;
+  min-width: 0;
 }
 
 .sizeControl select {
@@ -104,12 +109,13 @@ textarea {
 }
 
 .sizeControl input {
+  min-width: 0;
   accent-color: var(--accent);
 }
 
 .content {
   min-width: 0;
-  padding: 24px 24px 64px 44px;
+  padding: 24px 24px 64px 60px;
 }
 
 .topbar {
@@ -117,7 +123,7 @@ textarea {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 78px;
+  margin-bottom: 58px;
 }
 
 .brand {
@@ -163,11 +169,21 @@ textarea {
 }
 
 .hero {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 24px;
+  align-items: end;
+  margin-bottom: 22px;
+}
+
+.collectionTitle {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--text);
+  font-size: 30px;
+  font-weight: 650;
+  letter-spacing: 0;
+  line-height: 1.15;
 }
 
 .eyebrow {
@@ -188,13 +204,13 @@ textarea {
   gap: 0;
 }
 
-.fontCard {
+.fontRow {
   min-width: 0;
   padding: 20px 20px 24px;
   border-top: 1px solid var(--border);
 }
 
-.fontCard.highlight {
+.fontRow.highlight {
   border-radius: 6px;
   border-top: 0;
   background: var(--panel);
@@ -243,6 +259,14 @@ textarea {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: clip;
+}
+
+.unavailablePreview {
+  margin: 0;
+  color: var(--quiet);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
 }
 
 .note {
@@ -306,6 +330,49 @@ svg {
   margin-top: 16px;
   color: var(--muted);
   font-family: var(--mono);
+  font-size: 12px;
+}
+
+.otherCollections {
+  margin-top: 44px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.sectionTitle {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.collectionList {
+  display: grid;
+  gap: 10px;
+  max-width: 560px;
+}
+
+.collectionLink {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  min-height: 54px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  background: transparent;
+  text-align: left;
+}
+
+.collectionLink:hover {
+  border-color: var(--text);
+  background: var(--panel);
+}
+
+.collectionLink span:last-child {
+  color: var(--muted);
   font-size: 12px;
 }
 
