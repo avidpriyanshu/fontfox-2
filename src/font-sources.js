@@ -61,6 +61,7 @@ const FontSources = (() => {
         source: "cotype-foundry",
         sourceName: "CoType Foundry",
         sourceUrl: url.href,
+        foundry: "CoType Foundry",
         ...known
       }]
     };

@@ -120,25 +120,24 @@ function renderFontCard(entry, sample, index) {
 
 function fontMeta(entry) {
   if (entry.source === "google-fonts") return "";
-  if (entry.summary) return entry.summary;
   if (entry.designer && entry.foundry) return `${entry.designer} · ${entry.foundry}`;
   if (entry.designer) return entry.designer;
+  if (entry.foundry) return entry.foundry;
   return entry.sourceName || "";
 }
 
 function sourceDetail(entry) {
+  if (entry.source === "google-fonts") return "Google Fonts";
   return entry.sourceName || entry.source || "Font";
 }
 
 function canRenderPreview(entry) {
   if (entry.fontFaceUrl) return true;
-  if (!document.fonts || !document.fonts.check) return false;
-  return document.fonts.check(`16px "${entry.family}"`);
+  return entry.source === "google-fonts";
 }
 
 function fontCssStack(entry) {
   if (entry.source === "google-fonts") return `"${entry.family}", sans-serif`;
-  if (entry.category && entry.category.toLowerCase().includes("serif")) return `"${entry.family}", serif`;
   return `"${entry.family}", sans-serif`;
 }
 

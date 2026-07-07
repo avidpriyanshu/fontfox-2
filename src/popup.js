@@ -248,12 +248,6 @@ function renderEditor(collection) {
       source.className = "sourceBadge";
       source.textContent = entry?.sourceName || "Font";
 
-      const summary = entry?.summary ? document.createElement("p") : null;
-      if (summary) {
-        summary.className = "fontSummary";
-        summary.textContent = entry.summary;
-      }
-
       const remove = document.createElement("button");
       remove.type = "button";
       remove.className = "removeIconButton";
@@ -268,7 +262,6 @@ function renderEditor(collection) {
       const details = document.createElement("div");
       details.className = "fontDetails";
       details.append(name, source);
-      if (summary) details.append(summary);
 
       row.append(details, remove);
       fontList.append(row);
