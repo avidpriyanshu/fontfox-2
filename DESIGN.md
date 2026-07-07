@@ -7,8 +7,8 @@ FontFox uses a quiet dark interface for browsing font collections. The UI should
 - UI font: Inter/system sans for controls, labels, lists, and collection rows.
 - Brand type: Inter for the sidebar wordmark and active collection page title.
 - Mono font: Geist Mono only for technical CSS stacks and compact source labels.
-- Use a small scale: 12px metadata, 13px labels, 15px sidebar items, 24px brand, 30px page title.
-- Use restrained weights: 200 light for collection titles, 400 font names and tags, 450 regular, 560 medium, 640 semibold.
+- Use a small scale: 12px metadata, 13px labels, 15px sidebar items, 20px font names, 24px brand, 30px page title.
+- Use restrained weights: 200 light for collection titles, 400 tags, 450 regular, 560 medium, 600 font names, 640 semibold.
 - Do not show author/designer metadata inside compact collection rows; it breaks scan rhythm.
 
 ## Components

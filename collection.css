@@ -17,6 +17,7 @@
   --weight-light: 200;
   --weight-tag: 400;
   --weight-medium: 560;
+  --weight-title: 600;
   --weight-semibold: 640;
   --text-xs: 12px;
   --text-sm: 13px;
@@ -364,8 +365,8 @@ textarea {
 .fontName {
   margin: 0;
   color: var(--text);
-  font-size: 32px;
-  font-weight: var(--weight-tag);
+  font-size: 20px;
+  font-weight: var(--weight-title);
   line-height: 1.05;
 }
 
