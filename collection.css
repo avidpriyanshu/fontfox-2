@@ -225,7 +225,7 @@ textarea {
 .collectionTitle {
   margin: 0;
   color: var(--text);
-  font-family: var(--serif);
+  font-family: var(--sans);
   font-size: var(--text-xl);
   font-weight: var(--weight-light);
   letter-spacing: 0;
@@ -365,7 +365,7 @@ textarea {
   margin: 0;
   color: var(--text);
   font-size: 32px;
-  font-weight: var(--weight-light);
+  font-weight: var(--weight-tag);
   line-height: 1.05;
 }
 
