@@ -219,12 +219,6 @@ textarea {
   border-top: 1px solid var(--border);
 }
 
-.fontRow.highlight {
-  border-radius: 6px;
-  border-top: 0;
-  background: var(--panel);
-}
-
 .cardHead {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -288,7 +282,7 @@ textarea {
 .unavailablePreview {
   margin: 0;
   color: var(--quiet);
-  font-size: 15px;
+  font-size: 24px;
   font-weight: 600;
   line-height: 1.45;
 }

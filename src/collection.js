@@ -36,21 +36,7 @@ function renderCollectionPage() {
     `${collection.entries.length} ${collection.entries.length === 1 ? "font family" : "font families"}`;
 
   collectionEls.topActions.textContent = "";
-  const googleFamilies = collection.entries
-    .filter((entry) => entry.source === "google-fonts")
-    .map((entry) => entry.family);
-
-  if (googleFamilies.length) {
-    const openGoogle = document.createElement("button");
-    openGoogle.type = "button";
-    openGoogle.className = "button";
-    openGoogle.textContent = "Open Google fonts";
-    openGoogle.addEventListener("click", () => {
-      location.href = FontSources.buildGooglePreviewUrl(googleFamilies);
-    });
-    collectionEls.topActions.append(openGoogle);
-  }
-
+  loadGoogleFontCss(collection.entries);
   renderFontCards();
   renderOtherCollections();
 }
@@ -61,15 +47,14 @@ function renderFontCards() {
   collectionEls.fontGrid.textContent = "";
   document.documentElement.style.setProperty("--preview-size", `${collectionEls.previewSizeRange.value}px`);
 
-  collection.entries.forEach((entry, index) => {
-    collectionEls.fontGrid.append(renderFontCard(entry, sample, index));
+  collection.entries.forEach((entry) => {
+    collectionEls.fontGrid.append(renderFontCard(entry, sample));
   });
 }
 
-function renderFontCard(entry, sample, index) {
+function renderFontCard(entry, sample) {
   const card = document.createElement("article");
   card.className = "fontRow";
-  if (index === 0) card.classList.add("highlight");
 
   const head = document.createElement("header");
   head.className = "cardHead";
@@ -98,15 +83,11 @@ function renderFontCard(entry, sample, index) {
     preview.textContent = sample;
   } else {
     preview.className = "unavailablePreview";
-    preview.textContent = "Preview unavailable because FontFox does not have this font file. Open the source to view or license the font.";
+    preview.textContent = "No preview available";
   }
 
   const foot = document.createElement("footer");
   foot.className = "cardFoot";
-
-  const css = document.createElement("span");
-  css.className = "cssStack";
-  css.textContent = fontCssStack(entry);
 
   const actions = document.createElement("div");
   actions.className = "cardActions";
@@ -119,24 +100,34 @@ function renderFontCard(entry, sample, index) {
     actions.append(open);
   }
 
-  const copy = iconButton("Copy CSS", iconCopy());
-  copy.addEventListener("click", async () => {
-    await navigator.clipboard.writeText(`font-family: ${fontCssStack(entry)};`);
-    showCollectionMessage("CSS copied.");
-  });
-  actions.append(copy);
+  if (canRenderPreview(entry)) {
+    const css = document.createElement("span");
+    css.className = "cssStack";
+    css.textContent = fontCssStack(entry);
+    foot.append(css);
 
-  foot.append(css, actions);
+    const copy = iconButton("Copy CSS", iconCopy());
+    copy.addEventListener("click", async () => {
+      await navigator.clipboard.writeText(`font-family: ${fontCssStack(entry)};`);
+      showCollectionMessage("CSS copied.");
+    });
+    actions.append(copy);
+  } else {
+    const unavailable = document.createElement("span");
+    unavailable.className = "cssStack";
+    unavailable.textContent = "Font file not available";
+    foot.append(unavailable);
+  }
+
+  foot.append(actions);
   card.append(head, preview, foot);
   return card;
 }
 
 function fontMeta(entry) {
   if (entry.source === "google-fonts") return "";
-  if (entry.designer && entry.foundry) return `${entry.designer} · ${entry.foundry}`;
   if (entry.designer) return entry.designer;
-  if (entry.foundry) return entry.foundry;
-  return entry.sourceName || "";
+  return "";
 }
 
 function sourceDetail(entry) {
@@ -152,6 +143,23 @@ function canRenderPreview(entry) {
 function fontCssStack(entry) {
   if (entry.source === "google-fonts") return `"${entry.family}", sans-serif`;
   return `"${entry.family}", sans-serif`;
+}
+
+function loadGoogleFontCss(entries) {
+  document.querySelectorAll("link[data-fontfox-google-fonts]").forEach((node) => node.remove());
+  const families = [...new Set(entries
+    .filter((entry) => entry.source === "google-fonts")
+    .map((entry) => entry.family))];
+
+  if (!families.length) return;
+
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.dataset.fontfoxGoogleFonts = "true";
+  const params = new URLSearchParams();
+  families.forEach((family) => params.append("family", family.replace(/\s+/g, "+")));
+  link.href = `https://fonts.googleapis.com/css2?${params.toString()}&display=swap`;
+  document.head.append(link);
 }
 
 function syncPreviewSizeFromSelect() {
