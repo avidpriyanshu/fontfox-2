@@ -1,6 +1,6 @@
 const BookmarkStore = (() => {
   const ROOT_FOLDER_TITLE = "Fonts";
-  const EMPTY_COLLECTION_URL = "https://fonts.google.com/";
+  const COLLECTION_BOOKMARK_URL = "https://fontfox.local/collection";
   const METADATA_KEY = "fontfox.collectionMetadata";
 
   async function getRootFolder() {
@@ -32,17 +32,13 @@ const BookmarkStore = (() => {
   async function createCollection(title, fonts = []) {
     const root = await getRootFolder();
     const entries = normalizeFonts(fonts);
-    const googleFamilies = entries
-      .filter((entry) => entry.source === "google-fonts")
-      .map((entry) => entry.family);
-    const extraEntries = entries.filter((entry) => entry.source !== "google-fonts");
     const bookmark = await ext.bookmarks.create({
       parentId: root.id,
       title,
-      url: googleFamilies.length ? FontSources.buildGooglePreviewUrl(googleFamilies) : EMPTY_COLLECTION_URL
+      url: COLLECTION_BOOKMARK_URL
     });
 
-    if (extraEntries.length) await updateStoredEntries(bookmark.id, extraEntries);
+    if (entries.length) await updateStoredEntries(bookmark.id, entries);
     return bookmark;
   }
 
@@ -56,12 +52,8 @@ const BookmarkStore = (() => {
 
   async function setFonts(collection, fonts) {
     const entries = dedupeEntries(normalizeFonts(fonts));
-    const googleFamilies = entries
-      .filter((entry) => entry.source === "google-fonts")
-      .map((entry) => entry.family);
-    const extraEntries = entries.filter((entry) => entry.source !== "google-fonts");
-    await updateStoredEntries(collection.id, extraEntries);
-    return updateFamilies(collection, [...new Set(googleFamilies)]);
+    await updateStoredEntries(collection.id, entries);
+    return updateFamilies(collection);
   }
 
   async function renameCollection(collection, title) {
@@ -73,9 +65,8 @@ const BookmarkStore = (() => {
     return ext.bookmarks.remove(collection.id);
   }
 
-  async function updateFamilies(collection, families) {
-    const url = families.length ? FontSources.buildGooglePreviewUrl(families) : EMPTY_COLLECTION_URL;
-    return ext.bookmarks.update(collection.id, { url });
+  async function updateFamilies(collection) {
+    return ext.bookmarks.update(collection.id, { url: COLLECTION_BOOKMARK_URL });
   }
 
   async function readMetadata() {
@@ -123,14 +114,14 @@ const BookmarkStore = (() => {
 
   function normalizeCollectionNode(node, metadata) {
     const parsed = FontSources.parseSavedCollection(node.url);
-    const extraEntries = metadata[node.id]?.entries || [];
+    const storedEntries = metadata[node.id]?.entries || [];
     const googleEntries = parsed ? parsed.families.map((family) => ({
       family,
       source: "google-fonts",
       sourceName: "Google Fonts",
       sourceUrl: `https://fonts.google.com/specimen/${encodeURIComponent(family).replace(/%20/g, "+")}`
     })) : [];
-    const entries = dedupeEntries([...googleEntries, ...extraEntries]);
+    const entries = dedupeEntries([...storedEntries, ...googleEntries]);
     return {
       id: node.id,
       title: node.title,

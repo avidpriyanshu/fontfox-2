@@ -38,6 +38,21 @@ function renderCollectionPage() {
     `${collection.entries.length} ${collection.entries.length === 1 ? "font family" : "font families"}`;
 
   collectionEls.topActions.textContent = "";
+  const googleFamilies = collection.entries
+    .filter((entry) => entry.source === "google-fonts")
+    .map((entry) => entry.family);
+
+  if (googleFamilies.length) {
+    const openGoogle = document.createElement("button");
+    openGoogle.type = "button";
+    openGoogle.className = "button";
+    openGoogle.textContent = "Open Google fonts";
+    openGoogle.addEventListener("click", () => {
+      location.href = FontSources.buildGooglePreviewUrl(googleFamilies);
+    });
+    collectionEls.topActions.append(openGoogle);
+  }
+
   renderFontCards();
   renderOtherCollections();
 }

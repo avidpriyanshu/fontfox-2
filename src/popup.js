@@ -347,11 +347,9 @@ async function toggleCurrentFonts(collection) {
 }
 
 async function openCollection(collection) {
-  const hasProviderFonts = collection.entries.some((entry) => entry.source !== "google-fonts");
-  const url = hasProviderFonts
-    ? ext.runtime.getURL(`collection.html?id=${encodeURIComponent(collection.id)}`)
-    : collection.url;
-  await ext.tabs.create({ url });
+  await ext.tabs.create({
+    url: ext.runtime.getURL(`collection.html?id=${encodeURIComponent(collection.id)}`)
+  });
 }
 
 function currentFontsAreSaved(collection) {
