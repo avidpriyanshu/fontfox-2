@@ -1,14 +1,15 @@
 :root {
   color-scheme: dark;
-  --bg: hsl(0 0% 7%);
-  --panel: hsl(0 0% 8.5%);
-  --panel-soft: hsl(0 0% 11%);
-  --text: hsl(0 0% 94%);
-  --muted: hsl(0 0% 68%);
-  --quiet: hsl(0 0% 46%);
-  --border: hsl(0 0% 23%);
-  --border-soft: hsl(0 0% 18%);
-  --danger: hsl(0 84% 65%);
+  --bg: #121212;
+  --sidebar: #1d1d1d;
+  --panel: #242424;
+  --panel-soft: #2b2c2d;
+  --text: #f1f1f1;
+  --muted: #b8b8b8;
+  --quiet: #7d7d7d;
+  --border: #353535;
+  --accent: #8ec5ff;
+  --danger: #ff6b6b;
   --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --serif: "Ancizar Serif", Georgia, "Times New Roman", serif;
@@ -27,7 +28,8 @@ body {
 }
 
 button,
-textarea {
+textarea,
+input {
   font: inherit;
 }
 
@@ -36,9 +38,78 @@ button {
 }
 
 .page {
-  width: min(1180px, calc(100vw - 96px));
-  margin: 0 auto;
-  padding: 42px 0 72px;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 230px 1fr;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 24px 14px;
+  background: var(--sidebar);
+}
+
+.sidebarTop {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.resetButton,
+.closeButton {
+  border: 0;
+  color: var(--quiet);
+  background: transparent;
+}
+
+.previewControl {
+  display: grid;
+  gap: 14px;
+}
+
+label {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+textarea {
+  width: 100%;
+  min-height: 118px;
+  resize: vertical;
+  padding: 14px;
+  border: 0;
+  border-radius: 10px;
+  outline: none;
+  color: var(--text);
+  background: var(--panel-soft);
+}
+
+.sizeControl {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.sizeControl select {
+  height: 38px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--text);
+  background: var(--panel-soft);
+}
+
+.sizeControl input {
+  accent-color: var(--accent);
+}
+
+.content {
+  min-width: 0;
+  padding: 24px 24px 64px 44px;
 }
 
 .topbar {
@@ -46,16 +117,16 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 48px;
+  margin-bottom: 78px;
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  color: var(--muted);
+  gap: 10px;
+  color: var(--text);
   font-family: var(--serif);
-  font-size: 32px;
+  font-size: 22px;
   font-weight: 500;
   letter-spacing: 0;
 }
@@ -63,11 +134,10 @@ button {
 .mark {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   border: 1px solid var(--border);
   border-radius: 50%;
-  color: var(--text);
 }
 
 .topActions {
@@ -79,7 +149,7 @@ button {
   height: 38px;
   padding: 0 14px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 999px;
   color: var(--text);
   background: transparent;
   font-size: 13px;
@@ -89,114 +159,96 @@ button {
 .button:hover,
 .iconButton:hover {
   border-color: var(--text);
-  background: var(--panel-soft);
-}
-
-.hero {
-  margin-bottom: 44px;
-}
-
-.eyebrow {
-  margin: 0 0 18px;
-  color: var(--muted);
-  font-family: var(--mono);
-  font-size: 13px;
-}
-
-.previewControl {
-  display: grid;
-  gap: 8px;
-}
-
-label {
-  color: var(--quiet);
-  font-family: var(--mono);
-  font-size: 12px;
-}
-
-textarea {
-  width: 100%;
-  min-height: 50px;
-  resize: vertical;
-  padding: 14px 16px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  outline: none;
-  color: var(--text);
   background: var(--panel);
 }
 
-textarea:focus {
-  border-color: var(--text);
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.about {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 26px;
+  gap: 0;
 }
 
 .fontCard {
-  min-height: 320px;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: 28px;
-  padding: 28px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  min-width: 0;
+  padding: 20px 20px 24px;
+  border-top: 1px solid var(--border);
+}
+
+.fontCard.highlight {
+  border-radius: 6px;
+  border-top: 0;
   background: var(--panel);
 }
 
 .cardHead {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 16px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+  margin-bottom: 22px;
 }
 
 .fontName {
-  margin: 0 0 8px;
-  font-size: 17px;
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
   font-weight: 700;
-  line-height: 1.2;
 }
 
 .fontMeta {
-  max-width: 460px;
+  min-width: 0;
   margin: 0;
   color: var(--muted);
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 600;
-  line-height: 1.35;
-}
-
-.badge {
-  height: 26px;
-  padding: 0 9px;
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  color: var(--muted);
-  font-family: var(--mono);
-  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.sample {
-  align-self: center;
-  margin: 0;
-  color: var(--text);
-  font-size: 44px;
-  font-weight: 500;
-  letter-spacing: 0;
-  line-height: 1.22;
+.badge {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
 }
 
-.sample.unavailable {
+.sample {
+  width: 100%;
+  margin: 0;
+  color: var(--text);
+  font-size: var(--preview-size, 40px);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+.note {
+  margin: 10px 0 0;
   color: var(--quiet);
-  font-family: var(--mono);
-  font-size: 20px;
-  line-height: 1.45;
+  font-size: 12px;
 }
 
 .cardFoot {
@@ -204,8 +256,7 @@ textarea:focus {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding-top: 18px;
-  border-top: 1px solid var(--border-soft);
+  margin-top: 18px;
 }
 
 .cssStack {
@@ -260,26 +311,23 @@ svg {
 
 @media (max-width: 820px) {
   .page {
-    width: min(100vw - 32px, 620px);
-    padding-top: 24px;
-  }
-
-  .topbar {
-    align-items: flex-start;
-    flex-direction: column;
-    margin-bottom: 34px;
-  }
-
-  .grid {
     grid-template-columns: 1fr;
   }
 
-  .fontCard {
-    min-height: 300px;
-    padding: 22px;
+  .sidebar {
+    position: static;
+    height: auto;
+  }
+
+  .content {
+    padding: 22px 16px 48px;
+  }
+
+  .topbar {
+    margin-bottom: 36px;
   }
 
   .sample {
-    font-size: 36px;
+    white-space: normal;
   }
 }

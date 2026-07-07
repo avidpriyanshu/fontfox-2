@@ -6,6 +6,10 @@ const collectionEls = {
   topActions: document.querySelector("#topActions"),
   collectionMeta: document.querySelector("#collectionMeta"),
   previewText: document.querySelector("#previewText"),
+  previewSize: document.querySelector("#previewSize"),
+  previewSizeRange: document.querySelector("#previewSizeRange"),
+  resetPreview: document.querySelector("#resetPreview"),
+  clearPreview: document.querySelector("#clearPreview"),
   fontGrid: document.querySelector("#fontGrid"),
   message: document.querySelector("#message")
 };
@@ -19,6 +23,10 @@ async function initCollectionPage() {
 
   renderCollectionPage();
   collectionEls.previewText.addEventListener("input", renderFontCards);
+  collectionEls.previewSize.addEventListener("change", syncPreviewSizeFromSelect);
+  collectionEls.previewSizeRange.addEventListener("input", syncPreviewSizeFromRange);
+  collectionEls.resetPreview.addEventListener("click", resetPreview);
+  collectionEls.clearPreview.addEventListener("click", clearPreview);
 }
 
 function renderCollectionPage() {
@@ -49,15 +57,17 @@ function renderFontCards() {
   const collection = collectionState.collection;
   const sample = collectionEls.previewText.value.trim() || "Whereas recognition of the inherent dignity";
   collectionEls.fontGrid.textContent = "";
+  document.documentElement.style.setProperty("--preview-size", `${collectionEls.previewSizeRange.value}px`);
 
-  collection.entries.forEach((entry) => {
-    collectionEls.fontGrid.append(renderFontCard(entry, sample));
+  collection.entries.forEach((entry, index) => {
+    collectionEls.fontGrid.append(renderFontCard(entry, sample, index));
   });
 }
 
-function renderFontCard(entry, sample) {
+function renderFontCard(entry, sample, index) {
   const card = document.createElement("article");
   card.className = "fontCard";
+  if (index === 0) card.classList.add("highlight");
 
   const head = document.createElement("header");
   head.className = "cardHead";
@@ -75,12 +85,19 @@ function renderFontCard(entry, sample) {
 
   const badge = document.createElement("span");
   badge.className = "badge";
-  badge.textContent = entry.sourceName || entry.source || "Font";
+  badge.textContent = sourceDetail(entry);
   head.append(titleWrap, badge);
 
   const preview = document.createElement("p");
-  preview.className = entry.source === "google-fonts" ? "sample" : "sample unavailable";
-  preview.textContent = entry.source === "google-fonts" ? sample : (entry.summary || "Preview unavailable. FontFox saved the source and CSS metadata for this font.");
+  preview.className = "sample";
+  preview.style.fontFamily = fontCssStack(entry);
+  preview.textContent = sample;
+
+  const note = entry.source === "google-fonts" ? null : document.createElement("p");
+  if (note) {
+    note.className = "note";
+    note.textContent = "Preview uses this font if it is installed or available to the browser; otherwise it falls back.";
+  }
 
   const foot = document.createElement("footer");
   foot.className = "cardFoot";
@@ -108,21 +125,57 @@ function renderFontCard(entry, sample) {
   actions.append(copy);
 
   foot.append(css, actions);
-  card.append(head, preview, foot);
+  card.append(head, preview);
+  if (note) card.append(note);
+  card.append(foot);
   return card;
 }
 
 function fontMeta(entry) {
+  if (entry.summary) return entry.summary;
   if (entry.designer && entry.foundry) return `${entry.designer} · ${entry.foundry}`;
   if (entry.designer) return entry.designer;
-  if (entry.summary) return entry.summary;
   return entry.sourceName || "";
+}
+
+function sourceDetail(entry) {
+  if (entry.styles) return `${entry.sourceName || entry.source} · ${entry.styles}`;
+  return entry.sourceName || entry.source || "Font";
 }
 
 function fontCssStack(entry) {
   if (entry.source === "google-fonts") return `"${entry.family}", sans-serif`;
   if (entry.category && entry.category.toLowerCase().includes("serif")) return `"${entry.family}", serif`;
   return `"${entry.family}", sans-serif`;
+}
+
+function syncPreviewSizeFromSelect() {
+  collectionEls.previewSizeRange.value = collectionEls.previewSize.value;
+  renderFontCards();
+}
+
+function syncPreviewSizeFromRange() {
+  collectionEls.previewSize.value = nearestSizeOption(collectionEls.previewSizeRange.value);
+  renderFontCards();
+}
+
+function nearestSizeOption(value) {
+  const sizes = [...collectionEls.previewSize.options].map((option) => Number(option.value));
+  return String(sizes.reduce((closest, size) => (
+    Math.abs(size - value) < Math.abs(closest - value) ? size : closest
+  ), sizes[0]));
+}
+
+function resetPreview() {
+  collectionEls.previewText.value = "Whereas recognition of the inherent dignity";
+  collectionEls.previewSize.value = "40";
+  collectionEls.previewSizeRange.value = "40";
+  renderFontCards();
+}
+
+function clearPreview() {
+  collectionEls.previewText.value = "";
+  renderFontCards();
 }
 
 function iconButton(label, icon) {
