@@ -9,13 +9,12 @@
   <body>
     <main class="page">
       <aside class="sidebar">
-        <div class="sidebarTop">
-          <button id="resetPreview" class="resetButton" type="button">Reset all</button>
-          <button id="clearPreview" class="closeButton" type="button" aria-label="Clear preview">x</button>
-        </div>
         <div class="previewControl">
           <label for="previewText">Preview text</label>
-          <textarea id="previewText">Whereas recognition of the inherent dignity</textarea>
+          <div class="previewBox">
+            <textarea id="previewText">Whereas recognition of the inherent dignity</textarea>
+            <button id="clearPreview" class="clearTag" type="button">Clear</button>
+          </div>
           <div class="sizeControl">
             <select id="previewSize" aria-label="Preview size">
               <option value="32">32px</option>

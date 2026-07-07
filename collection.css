@@ -53,21 +53,6 @@ button {
   overflow: hidden;
 }
 
-.sidebarTop {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.resetButton,
-.closeButton {
-  border: 0;
-  color: var(--quiet);
-  background: transparent;
-}
-
 .previewControl {
   display: grid;
   gap: 14px;
@@ -78,18 +63,42 @@ label {
   font-size: 12px;
 }
 
+.previewBox {
+  position: relative;
+  min-width: 0;
+}
+
 textarea {
   width: 100%;
   max-width: 100%;
   min-width: 0;
   min-height: 118px;
   resize: vertical;
-  padding: 14px;
+  padding: 14px 62px 14px 14px;
   border: 0;
   border-radius: 10px;
   outline: none;
   color: var(--text);
   background: var(--panel-soft);
+}
+
+.clearTag {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  background: hsl(0 0% 18%);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.clearTag:hover {
+  color: var(--text);
+  border-color: var(--text);
 }
 
 .sizeControl {

@@ -9,7 +9,6 @@ const collectionEls = {
   previewText: document.querySelector("#previewText"),
   previewSize: document.querySelector("#previewSize"),
   previewSizeRange: document.querySelector("#previewSizeRange"),
-  resetPreview: document.querySelector("#resetPreview"),
   clearPreview: document.querySelector("#clearPreview"),
   fontGrid: document.querySelector("#fontGrid"),
   otherCollections: document.querySelector("#otherCollections"),
@@ -27,7 +26,6 @@ async function initCollectionPage() {
   collectionEls.previewText.addEventListener("input", renderFontCards);
   collectionEls.previewSize.addEventListener("change", syncPreviewSizeFromSelect);
   collectionEls.previewSizeRange.addEventListener("input", syncPreviewSizeFromRange);
-  collectionEls.resetPreview.addEventListener("click", resetPreview);
   collectionEls.clearPreview.addEventListener("click", clearPreview);
 }
 
@@ -171,13 +169,6 @@ function nearestSizeOption(value) {
   return String(sizes.reduce((closest, size) => (
     Math.abs(size - value) < Math.abs(closest - value) ? size : closest
   ), sizes[0]));
-}
-
-function resetPreview() {
-  collectionEls.previewText.value = "Whereas recognition of the inherent dignity";
-  collectionEls.previewSize.value = "40";
-  collectionEls.previewSizeRange.value = "40";
-  renderFontCards();
 }
 
 function clearPreview() {
