@@ -1,7 +1,8 @@
 const collectionState = {
   collection: null,
   editMode: false,
-  selectedFontKeys: new Set()
+  selectedFontKeys: new Set(),
+  viewMode: localStorage.getItem("fontfox.collectionViewMode") || "list"
 };
 
 const collectionEls = {
@@ -9,6 +10,7 @@ const collectionEls = {
   collectionTitle: document.querySelector("#collectionTitle"),
   collectionActions: document.querySelector("#collectionActions"),
   collectionMeta: document.querySelector("#collectionMeta"),
+  viewToggle: document.querySelector("#viewToggle"),
   previewText: document.querySelector("#previewText"),
   previewSizeLabel: document.querySelector("#previewSizeLabel"),
   previewSizeRange: document.querySelector("#previewSizeRange"),
@@ -38,6 +40,7 @@ function renderCollectionPage() {
 
   collectionEls.topActions.textContent = "";
   renderCollectionHeader();
+  renderViewToggle();
   loadGoogleFontCss(collection.entries);
   renderFontCards();
   renderOtherCollections();
@@ -88,10 +91,37 @@ function renderCollectionHeader() {
   }
 }
 
+function renderViewToggle() {
+  collectionEls.viewToggle.textContent = "";
+  [
+    { id: "list", label: "Row", icon: iconRows() },
+    { id: "grid", label: "Grid", icon: iconGrid() }
+  ].forEach((view) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "viewButton";
+    if (collectionState.viewMode === view.id) {
+      button.classList.add("isActive");
+      button.setAttribute("aria-pressed", "true");
+    } else {
+      button.setAttribute("aria-pressed", "false");
+    }
+    button.innerHTML = `${view.icon}<span>${view.label}</span>`;
+    button.addEventListener("click", () => {
+      collectionState.viewMode = view.id;
+      localStorage.setItem("fontfox.collectionViewMode", view.id);
+      renderViewToggle();
+      renderFontCards();
+    });
+    collectionEls.viewToggle.append(button);
+  });
+}
+
 function renderFontCards() {
   const collection = collectionState.collection;
   const sample = collectionEls.previewText.value.trim() || "Whereas recognition of the inherent dignity";
   collectionEls.fontGrid.textContent = "";
+  collectionEls.fontGrid.className = collectionState.viewMode === "grid" ? "grid gridView" : "grid";
   document.documentElement.style.setProperty("--preview-size", `${collectionEls.previewSizeRange.value}px`);
 
   collection.entries.forEach((entry) => {
@@ -102,7 +132,7 @@ function renderFontCards() {
 function renderFontCard(entry, sample) {
   const fontKey = entryKey(entry);
   const card = document.createElement("article");
-  card.className = "fontRow";
+  card.className = collectionState.viewMode === "grid" ? "fontRow fontCard" : "fontRow";
   if (collectionState.editMode) card.classList.add("isEditing");
 
   const head = document.createElement("header");
@@ -339,6 +369,14 @@ function iconClose() {
 
 function iconExport() {
   return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg>`;
+}
+
+function iconRows() {
+  return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path></svg>`;
+}
+
+function iconGrid() {
+  return `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"></rect><rect x="14" y="4" width="6" height="6" rx="1"></rect><rect x="4" y="14" width="6" height="6" rx="1"></rect><rect x="14" y="14" width="6" height="6" rx="1"></rect></svg>`;
 }
 
 function iconExternal() {

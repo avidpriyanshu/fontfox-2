@@ -207,7 +207,7 @@ textarea {
 
 .hero {
   display: grid;
-  gap: 8px;
+  gap: 10px;
   align-items: end;
   margin-bottom: 22px;
 }
@@ -252,6 +252,14 @@ textarea {
   flex: none;
 }
 
+.heroMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+}
+
 .eyebrow {
   margin: 0;
   color: var(--muted);
@@ -259,9 +267,48 @@ textarea {
   font-weight: var(--weight-medium);
 }
 
+.viewToggle {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: hsl(0 0% 9%);
+}
+
+.viewButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--muted);
+  background: transparent;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
+.viewButton.isActive {
+  color: var(--text);
+  background: var(--panel);
+}
+
+.viewButton svg {
+  width: 14px;
+  height: 14px;
+}
+
 .grid {
   display: grid;
   gap: 0;
+}
+
+.gridView {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 18px;
 }
 
 .fontRow {
@@ -269,6 +316,16 @@ textarea {
   min-width: 0;
   padding: 20px 20px 24px;
   border-top: 1px solid var(--border);
+}
+
+.fontCard {
+  display: flex;
+  min-height: 360px;
+  padding: 24px;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: hsl(0 0% 8%);
 }
 
 .fontRow.isEditing {
@@ -366,12 +423,26 @@ textarea {
   text-overflow: clip;
 }
 
+.fontCard .sample {
+  display: -webkit-box;
+  min-height: 180px;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
 .unavailablePreview {
   margin: 0;
   color: var(--quiet);
   font-size: 24px;
   font-weight: var(--weight-semibold);
   line-height: 1.45;
+}
+
+.fontCard .unavailablePreview {
+  display: flex;
+  min-height: 180px;
+  align-items: center;
 }
 
 .note {
@@ -386,6 +457,12 @@ textarea {
   justify-content: space-between;
   gap: 16px;
   margin-top: 18px;
+}
+
+.fontCard .cardFoot {
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
 }
 
 .cardFoot.actionsOnly {
@@ -516,6 +593,15 @@ svg {
 
   .sample {
     white-space: normal;
+  }
+
+  .heroMeta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .gridView {
+    grid-template-columns: 1fr;
   }
 
   .cardHead {

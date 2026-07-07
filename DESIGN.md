@@ -13,6 +13,7 @@ FontFox uses a quiet dark interface for browsing font collections. The UI should
 
 ## Components
 - Font rows are horizontal scan units: name on the left, source badge on the right, both center-aligned on the same axis.
+- Grid view is optional and should use restrained cards for side-by-side font preview only; row view remains the default.
 - Source badges are bordered pills with mono text and muted color.
 - Sidebar collection items use the same font family, size, and weight across all rows. The current collection is highlighted with a subtle border and surface fill.
 - Icon buttons are 34px square with a 9px radius and muted borders.
