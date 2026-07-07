@@ -112,14 +112,12 @@ function renderFontCard(entry, sample) {
       showCollectionMessage("CSS copied.");
     });
     actions.append(copy);
-  } else {
-    const unavailable = document.createElement("span");
-    unavailable.className = "cssStack";
-    unavailable.textContent = "Font file not available";
-    foot.append(unavailable);
   }
 
-  foot.append(actions);
+  if (actions.children.length) foot.append(actions);
+  if (foot.children.length === 1 && foot.firstElementChild === actions) {
+    foot.classList.add("actionsOnly");
+  }
   card.append(head, preview, foot);
   return card;
 }

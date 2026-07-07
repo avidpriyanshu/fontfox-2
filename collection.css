@@ -179,8 +179,7 @@ textarea {
 
 .hero {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px 24px;
+  gap: 8px;
   align-items: end;
   margin-bottom: 22px;
 }
@@ -202,29 +201,23 @@ textarea {
   font-weight: 700;
 }
 
-.about {
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 700;
-}
-
 .grid {
   display: grid;
   gap: 0;
 }
 
 .fontRow {
+  position: relative;
   min-width: 0;
   padding: 20px 20px 24px;
   border-top: 1px solid var(--border);
 }
 
 .cardHead {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-  gap: 16px;
+  display: block;
+  width: 100%;
   min-width: 0;
+  padding-right: 190px;
   margin-bottom: 22px;
 }
 
@@ -247,9 +240,12 @@ textarea {
 }
 
 .badge {
-  justify-self: end;
+  position: absolute;
+  top: 20px;
+  right: 20px;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-height: 26px;
   max-width: 180px;
   padding: 0 10px;
@@ -299,6 +295,10 @@ textarea {
   justify-content: space-between;
   gap: 16px;
   margin-top: 18px;
+}
+
+.cardFoot.actionsOnly {
+  justify-content: flex-end;
 }
 
 .cssStack {
@@ -413,5 +413,15 @@ svg {
 
   .sample {
     white-space: normal;
+  }
+
+  .cardHead {
+    padding-right: 0;
+  }
+
+  .badge {
+    position: static;
+    max-width: 100%;
+    margin-top: 10px;
   }
 }
