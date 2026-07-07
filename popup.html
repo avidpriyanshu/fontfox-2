@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Fontmark</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <div>
+          <h1>FontFox</h1>
+          <p id="pageStatus">Checking this page...</p>
+        </div>
+        <button id="createCollection" type="button" class="headerAction" aria-label="Create collection"></button>
+      </header>
+
+      <div id="collections" class="collections"></div>
+
+      <p id="message" class="message" role="status"></p>
+    </main>
+
+    <script src="src/browser-api.js"></script>
+    <script src="src/font-sources.js"></script>
+    <script src="src/bookmark-store.js"></script>
+    <script src="src/popup.js"></script>
+  </body>
+</html>
