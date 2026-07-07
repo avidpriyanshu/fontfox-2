@@ -319,8 +319,16 @@ textarea {
   white-space: nowrap;
 }
 
-.badge {
+.badges {
   flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -338,6 +346,11 @@ textarea {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.typeBadge {
+  color: var(--text);
+  background: hsl(0 0% 100% / 0.06);
 }
 
 .sample {

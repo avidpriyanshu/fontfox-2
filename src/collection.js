@@ -138,10 +138,20 @@ function renderFontCard(entry, sample) {
   if (meta.textContent) titleText.append(meta);
   titleWrap.append(titleText);
 
-  const badge = document.createElement("span");
-  badge.className = "badge";
-  badge.textContent = sourceDetail(entry);
-  head.append(titleWrap, badge);
+  const badges = document.createElement("div");
+  badges.className = "badges";
+  if (entry.type) {
+    const typeBadge = document.createElement("span");
+    typeBadge.className = "badge typeBadge";
+    typeBadge.textContent = entry.type;
+    badges.append(typeBadge);
+  }
+
+  const sourceBadge = document.createElement("span");
+  sourceBadge.className = "badge";
+  sourceBadge.textContent = sourceDetail(entry);
+  badges.append(sourceBadge);
+  head.append(titleWrap, badges);
 
   const preview = document.createElement("p");
   if (canRenderPreview(entry)) {
