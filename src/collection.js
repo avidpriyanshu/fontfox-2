@@ -190,8 +190,6 @@ function renderFontCard(entry, sample) {
 }
 
 function fontMeta(entry) {
-  if (entry.source === "google-fonts") return "";
-  if (entry.designer) return entry.designer;
   return "";
 }
 
