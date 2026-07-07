@@ -14,6 +14,7 @@
   --mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --serif: "Ancizar Serif", Georgia, "Times New Roman", serif;
   --weight-regular: 450;
+  --weight-light: 200;
   --weight-medium: 560;
   --weight-semibold: 640;
   --text-xs: 12px;
@@ -364,6 +365,12 @@ textarea {
   font-size: var(--text-sm);
   font-weight: var(--weight-semibold);
   line-height: 1.2;
+}
+
+.fontCard .fontName {
+  font-size: 32px;
+  font-weight: var(--weight-light);
+  line-height: 1.05;
 }
 
 .fontMeta {

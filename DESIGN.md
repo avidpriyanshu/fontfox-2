@@ -8,7 +8,7 @@ FontFox uses a quiet dark interface for browsing font collections. The UI should
 - Brand font: Ancizar Serif for the FontFox wordmark and the active collection page title.
 - Mono font: Geist Mono only for technical CSS stacks and compact source labels.
 - Use a small scale: 12px metadata, 13px labels, 15px sidebar items, 22px brand, 30px page title.
-- Use only four weights: 450 regular, 560 medium, 640 semibold, 500 brand.
+- Use restrained weights: 200 light for large grid-card font names, 450 regular, 560 medium, 640 semibold, 500 brand.
 - Do not show author/designer metadata inside compact collection rows; it breaks scan rhythm.
 
 ## Components
