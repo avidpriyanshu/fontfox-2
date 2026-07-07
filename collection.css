@@ -446,9 +446,10 @@ textarea {
 .unavailablePreview {
   margin: 0;
   color: var(--quiet);
-  font-size: 24px;
-  font-weight: var(--weight-semibold);
-  line-height: 1.45;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: 1.4;
+  opacity: 0.58;
 }
 
 .note {
