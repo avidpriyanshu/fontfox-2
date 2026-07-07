@@ -9,6 +9,10 @@
   <body>
     <main class="page">
       <aside class="sidebar">
+        <div class="brand sidebarBrand">
+          <span class="mark">Ff</span>
+          <span>FontFox</span>
+        </div>
         <div class="previewControl">
           <label for="previewText">Preview text</label>
           <div class="previewBox">
@@ -25,18 +29,14 @@
             <input id="previewSizeRange" type="range" min="24" max="72" value="40" aria-label="Preview size slider">
           </div>
         </div>
-        <section class="otherCollections" aria-label="Other collections">
-          <h2 class="sectionTitle">Other collections</h2>
+        <section class="otherCollections" aria-label="Collections">
+          <h2 class="sectionTitle">Collections</h2>
           <div id="otherCollections" class="collectionList"></div>
         </section>
       </aside>
 
       <section class="content">
         <nav class="topbar">
-          <div class="brand">
-            <span class="mark">Ff</span>
-            <span>FontFox</span>
-          </div>
           <div id="topActions" class="topActions"></div>
         </nav>
 

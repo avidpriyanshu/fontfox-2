@@ -184,22 +184,27 @@ function clearPreview() {
 
 async function renderOtherCollections() {
   const collections = await BookmarkStore.listCollections();
-  const others = collections.filter((collection) => collection.id !== collectionState.collection.id);
   collectionEls.otherCollections.textContent = "";
 
-  if (!others.length) {
+  if (!collections.length) {
     const empty = document.createElement("p");
     empty.className = "message";
-    empty.textContent = "No other collections yet.";
+    empty.textContent = "No collections yet.";
     collectionEls.otherCollections.append(empty);
     return;
   }
 
-  others.forEach((collection) => {
+  collections.forEach((collection) => {
+    const isCurrent = collection.id === collectionState.collection.id;
     const button = document.createElement("button");
     button.type = "button";
     button.className = "collectionLink";
+    if (isCurrent) {
+      button.classList.add("isActive");
+      button.setAttribute("aria-current", "page");
+    }
     button.addEventListener("click", () => {
+      if (isCurrent) return;
       location.href = ext.runtime.getURL(`collection.html?id=${encodeURIComponent(collection.id)}`);
     });
 
