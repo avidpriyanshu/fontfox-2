@@ -411,6 +411,17 @@ textarea {
   background: hsl(0 0% 100% / 0.06);
 }
 
+.inlineIconButton {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+}
+
+.inlineIconButton svg {
+  width: 14px;
+  height: 14px;
+}
+
 .sample {
   width: 100%;
   margin: 0;
@@ -440,44 +451,10 @@ textarea {
   line-height: 1.45;
 }
 
-.fontCard .unavailablePreview {
-  display: flex;
-  min-height: 180px;
-  align-items: center;
-}
-
 .note {
   margin: 10px 0 0;
   color: var(--quiet);
   font-size: var(--text-xs);
-}
-
-.cardFoot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-top: 18px;
-}
-
-.fontCard .cardFoot {
-  margin-top: auto;
-  padding-top: 18px;
-  border-top: 1px solid var(--border);
-}
-
-.cardFoot.actionsOnly {
-  justify-content: flex-end;
-}
-
-.cssStack {
-  min-width: 0;
-  color: var(--quiet);
-  font-family: var(--mono);
-  font-size: var(--text-xs);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .cardActions {

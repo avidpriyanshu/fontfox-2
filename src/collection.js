@@ -189,6 +189,14 @@ function renderFontCard(entry, sample) {
   sourceBadge.className = "badge";
   sourceBadge.textContent = sourceDetail(entry);
   badges.append(sourceBadge);
+  if (entry.sourceUrl) {
+    const open = iconButton("Open source", iconExternal());
+    open.classList.add("inlineIconButton");
+    open.addEventListener("click", () => {
+      location.href = entry.sourceUrl;
+    });
+    badges.append(open);
+  }
   head.append(titleWrap, badges);
 
   const preview = document.createElement("p");
@@ -201,39 +209,7 @@ function renderFontCard(entry, sample) {
     preview.textContent = "No preview available";
   }
 
-  const foot = document.createElement("footer");
-  foot.className = "cardFoot";
-
-  const actions = document.createElement("div");
-  actions.className = "cardActions";
-
-  if (entry.sourceUrl) {
-    const open = iconButton("Open source", iconExternal());
-    open.addEventListener("click", () => {
-      location.href = entry.sourceUrl;
-    });
-    actions.append(open);
-  }
-
-  if (canRenderPreview(entry)) {
-    const css = document.createElement("span");
-    css.className = "cssStack";
-    css.textContent = fontCssStack(entry);
-    foot.append(css);
-
-    const copy = iconButton("Copy CSS", iconCopy());
-    copy.addEventListener("click", async () => {
-      await navigator.clipboard.writeText(`font-family: ${fontCssStack(entry)};`);
-      showCollectionMessage("CSS copied.");
-    });
-    actions.append(copy);
-  }
-
-  if (actions.children.length) foot.append(actions);
-  if (foot.children.length === 1 && foot.firstElementChild === actions) {
-    foot.classList.add("actionsOnly");
-  }
-  card.append(head, preview, foot);
+  card.append(head, preview);
   return card;
 }
 
@@ -477,10 +453,6 @@ function iconGrid() {
 
 function iconExternal() {
   return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7"></path><path d="M10 14 21 3"></path><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path></svg>`;
-}
-
-function iconCopy() {
-  return `<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
 }
 
 function showCollectionMessage(text) {
