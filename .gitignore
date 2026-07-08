@@ -1,0 +1,8 @@
+.DS_Store
+node_modules/
+npm-debug.log*
+
+# Local previews and agent workspace files.
+work/
+.agents/
+skills-lock.json
