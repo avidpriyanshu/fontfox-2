@@ -1,0 +1,51 @@
+{
+  "title": "Sans Serif",
+  "publishedAt": "2026-07-08T07:30:17.846Z",
+  "entries": [
+    {
+      "source": "cotype-foundry",
+      "sourceName": "CoType Foundry",
+      "family": "Ambit",
+      "sourceUrl": "https://cotypefoundry.com/our-fonts/ambit",
+      "category": "Sans serif",
+      "designer": "Mark Bloom",
+      "foundry": "CoType Foundry",
+      "styles": "14 styles",
+      "formats": [
+        "OTF",
+        "WOFF",
+        "WOFF2",
+        "Variable"
+      ],
+      "tags": [
+        "eccentric",
+        "grotesque",
+        "contemporary",
+        "branding",
+        "editorial"
+      ],
+      "summary": "Ambit is an eccentric contemporary sans serif inspired by early grotesques, with distinctive curly details and a strong branding/editorial personality."
+    },
+    {
+      "source": "cotype-foundry",
+      "sourceName": "CoType Foundry",
+      "family": "Lock Serif",
+      "sourceUrl": "https://cotypefoundry.com/our-fonts/lock-serif"
+    },
+    {
+      "source": "cotype-foundry",
+      "sourceName": "CoType Foundry",
+      "family": "Orbikular",
+      "sourceUrl": "https://cotypefoundry.com/our-fonts/orbikular",
+      "foundry": "CoType Foundry",
+      "previewImage": "https://avidpriyanshu.github.io/fontfox-2/previews/sans-serif-ak3yfz-yzsrh/orbikular.jpg"
+    },
+    {
+      "source": "adobe-fonts",
+      "sourceName": "Adobe Fonts",
+      "family": "Vesper Devanagari",
+      "sourceUrl": "https://fonts.adobe.com/fonts/vesper-devanagari",
+      "previewImage": "https://avidpriyanshu.github.io/fontfox-2/previews/sans-serif-ak3yfz-yzsrh/vesper-devanagari.jpg"
+    }
+  ]
+}
