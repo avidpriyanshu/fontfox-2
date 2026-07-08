@@ -1,6 +1,5 @@
 const BookmarkStore = (() => {
   const ROOT_FOLDER_TITLE = "Fonts";
-  const COLLECTION_BOOKMARK_URL = "https://fontfox.local/collection";
   const METADATA_KEY = "fontfox.collectionMetadata";
 
   async function getRootFolder() {
@@ -35,11 +34,12 @@ const BookmarkStore = (() => {
     const bookmark = await ext.bookmarks.create({
       parentId: root.id,
       title,
-      url: COLLECTION_BOOKMARK_URL
+      url: collectionPageUrl()
     });
 
+    await ext.bookmarks.update(bookmark.id, { url: collectionPageUrl(bookmark.id) });
     if (entries.length) await updateStoredEntries(bookmark.id, entries);
-    return bookmark;
+    return { ...bookmark, url: collectionPageUrl(bookmark.id) };
   }
 
   async function addFont(collection, family) {
@@ -66,7 +66,14 @@ const BookmarkStore = (() => {
   }
 
   async function updateFamilies(collection) {
-    return ext.bookmarks.update(collection.id, { url: COLLECTION_BOOKMARK_URL });
+    return ext.bookmarks.update(collection.id, { url: collectionPageUrl(collection.id) });
+  }
+
+  function collectionPageUrl(id = "") {
+    const path = id
+      ? `collection.html?id=${encodeURIComponent(id)}`
+      : "collection.html";
+    return ext.runtime.getURL(path);
   }
 
   async function readMetadata() {

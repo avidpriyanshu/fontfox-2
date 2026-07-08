@@ -47,6 +47,11 @@ const context = {
           metadata = value["fontfox.collectionMetadata"];
         }
       }
+    },
+    runtime: {
+      getURL(path) {
+        return `moz-extension://fontfox-test/${path}`;
+      }
     }
   }
 };
@@ -59,10 +64,10 @@ const { BookmarkStore } = context;
 
 (async () => {
   const collection = await BookmarkStore.createCollection("Google start", ["Roboto"]);
-  assert.equal(collection.url, "https://fontfox.local/collection");
+  assert.equal(collection.url, "moz-extension://fontfox-test/collection.html?id=1");
 
   const [listed] = await BookmarkStore.listCollections();
-  assert.equal(listed.url, "https://fontfox.local/collection");
+  assert.equal(listed.url, "moz-extension://fontfox-test/collection.html?id=1");
   assert.deepEqual(listed.families, ["Roboto"]);
   assert.equal(listed.entries[0].source, "google-fonts");
 

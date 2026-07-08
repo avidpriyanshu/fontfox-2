@@ -1,11 +1,14 @@
 const collectionState = {
   collection: null,
+  shared: false,
   editMode: false,
   collections: [],
   contextCollection: null,
   selectedFontKeys: new Set(),
   viewMode: localStorage.getItem("fontfox.collectionViewMode") || "list"
 };
+
+const WEB_SHARE_URL = "https://avidpriyanshu.github.io/fontfox-2/collection.html";
 
 const collectionEls = {
   topActions: document.querySelector("#topActions"),
@@ -23,9 +26,29 @@ const collectionEls = {
 };
 
 const collectionMenu = createCollectionContextMenu();
+const exportMenu = createExportMenu();
 
 async function initCollectionPage() {
-  const id = new URL(location.href).searchParams.get("id");
+  const params = new URL(location.href).searchParams;
+  const share = params.get("share") || parseShareHash(location.hash);
+  if (share) {
+    collectionState.collection = parseSharedCollection(share);
+    collectionState.shared = true;
+    renderCollectionPage();
+    collectionEls.previewText.addEventListener("input", renderFontCards);
+    collectionEls.previewSizeRange.addEventListener("input", syncPreviewSizeFromRange);
+    collectionEls.clearPreview.addEventListener("click", clearPreview);
+    document.addEventListener("click", closeMenus);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeMenus();
+    });
+    return;
+  }
+
+  const id = params.get("id");
+  if (!globalThis.browser && !globalThis.chrome) {
+    return showCollectionMessage("Open a shared collection URL or install FontFox to view saved local collections.");
+  }
   if (!id) return showCollectionMessage("Missing collection id.");
 
   collectionState.collection = await BookmarkStore.getCollection(id);
@@ -35,9 +58,9 @@ async function initCollectionPage() {
   collectionEls.previewText.addEventListener("input", renderFontCards);
   collectionEls.previewSizeRange.addEventListener("input", syncPreviewSizeFromRange);
   collectionEls.clearPreview.addEventListener("click", clearPreview);
-  document.addEventListener("click", closeCollectionContextMenu);
+  document.addEventListener("click", closeMenus);
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") closeCollectionContextMenu();
+    if (event.key === "Escape") closeMenus();
   });
 }
 
@@ -76,19 +99,24 @@ function renderCollectionHeader() {
     collectionEls.collectionTitle.textContent = collectionState.collection.title;
   }
 
-  const edit = iconButton(collectionState.editMode ? "Close editor" : "Edit collection", collectionState.editMode ? iconClose() : iconPencil());
-  edit.addEventListener("click", () => {
-    collectionState.editMode = !collectionState.editMode;
-    collectionState.selectedFontKeys.clear();
-    renderCollectionPage();
-  });
-  collectionEls.collectionActions.append(edit);
+  if (!collectionState.shared) {
+    const edit = iconButton(collectionState.editMode ? "Close editor" : "Edit collection", collectionState.editMode ? iconClose() : iconPencil());
+    edit.addEventListener("click", () => {
+      collectionState.editMode = !collectionState.editMode;
+      collectionState.selectedFontKeys.clear();
+      renderCollectionPage();
+    });
+    collectionEls.collectionActions.append(edit);
+  }
 
-  const exportButton = iconButton("Export collection", iconExport());
-  exportButton.addEventListener("click", exportCollectionText);
+  const exportButton = iconButton("Share collection", iconShare());
+  exportButton.addEventListener("click", (event) => {
+    event.stopPropagation();
+    openExportMenu(exportButton);
+  });
   collectionEls.collectionActions.append(exportButton);
 
-  if (collectionState.editMode) {
+  if (collectionState.editMode && !collectionState.shared) {
     const deleteSelected = document.createElement("button");
     deleteSelected.type = "button";
     deleteSelected.className = "button dangerText";
@@ -199,12 +227,19 @@ function renderFontCard(entry, sample) {
   }
   head.append(titleWrap, badges);
 
-  const preview = document.createElement("p");
+  let preview;
   if (canRenderPreview(entry)) {
+    preview = document.createElement("p");
     preview.className = "sample";
     preview.style.fontFamily = fontCssStack(entry);
     preview.textContent = sample;
+  } else if (entry.previewImage) {
+    preview = document.createElement("img");
+    preview.className = "capturedFontPreview";
+    preview.src = entry.previewImage;
+    preview.alt = `${entry.family} captured preview`;
   } else {
+    preview = document.createElement("p");
     preview.className = "unavailablePreview";
     preview.textContent = "No preview available";
   }
@@ -278,22 +313,173 @@ async function deleteSelectedFonts() {
   showCollectionMessage("Selected fonts deleted.");
 }
 
-async function exportCollectionText() {
+function createExportMenu() {
+  const menu = document.createElement("div");
+  menu.className = "contextMenu exportMenu";
+  menu.hidden = true;
+
+  [
+    ["Download Markdown", downloadMarkdown],
+    ["Download JSON", downloadJson],
+    ["Copy Markdown", copyMarkdown],
+    ["Copy Web Share URL", copyShareUrl]
+  ].forEach(([label, action]) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = label;
+    button.addEventListener("click", async (event) => {
+      event.stopPropagation();
+      closeExportMenu();
+      await action();
+    });
+    menu.append(button);
+  });
+
+  document.body.append(menu);
+  return menu;
+}
+
+function openExportMenu(anchor) {
+  closeCollectionContextMenu();
+  exportMenu.hidden = false;
+  const anchorRect = anchor.getBoundingClientRect();
+  const menuRect = exportMenu.getBoundingClientRect();
+  exportMenu.style.left = `${Math.max(8, anchorRect.right - menuRect.width)}px`;
+  exportMenu.style.top = `${anchorRect.bottom + 8}px`;
+}
+
+function closeExportMenu() {
+  exportMenu.hidden = true;
+}
+
+async function downloadMarkdown() {
+  downloadFile(`${safeFileName(collectionState.collection.title)}.md`, collectionMarkdown(), "text/markdown");
+  showCollectionMessage("Markdown downloaded.");
+}
+
+async function downloadJson() {
+  const data = {
+    title: collectionState.collection.title,
+    exportedAt: new Date().toISOString(),
+    entries: collectionState.collection.entries
+  };
+  downloadFile(`${safeFileName(collectionState.collection.title)}.json`, JSON.stringify(data, null, 2), "application/json");
+  showCollectionMessage("JSON downloaded.");
+}
+
+async function copyMarkdown() {
+  await copyText(collectionMarkdown());
+  showCollectionMessage("Markdown copied.");
+}
+
+async function copyShareUrl() {
+  await copyText(collectionShareUrl());
+  showCollectionMessage("Share URL copied.");
+}
+
+function collectionMarkdown() {
+  const collection = collectionState.collection;
   const lines = [
-    collectionState.collection.title,
-    `${collectionState.collection.entries.length} ${collectionState.collection.entries.length === 1 ? "font" : "fonts"}`,
+    `# ${collection.title}`,
     "",
-    ...collectionState.collection.entries.map((entry) => {
-      const parts = [entry.family, sourceDetail(entry)];
-      if (entry.sourceUrl) parts.push(entry.sourceUrl);
-      return parts.join(" - ");
+    `${collection.entries.length} ${collection.entries.length === 1 ? "font" : "fonts"}`,
+    "",
+    ...collection.entries.flatMap((entry) => {
+      const line = entry.sourceUrl
+        ? `- [${entry.family}](${entry.sourceUrl}) - ${sourceDetail(entry)}`
+        : `- ${entry.family} - ${sourceDetail(entry)}`;
+      return entry.previewImage ? [line, "  - Captured preview stored in FontFox JSON export."] : [line];
     })
   ];
-  await navigator.clipboard.writeText(lines.join("\n"));
-  showCollectionMessage("Collection copied.");
+  return `${lines.join("\n")}\n`;
+}
+
+function collectionShareUrl() {
+  const payload = {
+    title: collectionState.collection.title,
+    entries: collectionState.collection.entries.map(({ previewImage, ...entry }) => entry)
+  };
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  return `${WEB_SHARE_URL}#share=${encodeURIComponent(encoded)}`;
+}
+
+function parseShareHash(hash) {
+  if (!hash) return "";
+  const value = hash.startsWith("#") ? hash.slice(1) : hash;
+  if (!value.startsWith("share=")) return "";
+  return value.slice("share=".length);
+}
+
+function parseSharedCollection(share) {
+  try {
+    const encoded = decodeURIComponent(share);
+    const payload = JSON.parse(decodeURIComponent(escape(atob(encoded))));
+    const entries = Array.isArray(payload.entries) ? payload.entries.filter((entry) => entry?.family) : [];
+    return {
+      id: null,
+      title: payload.title || "Shared collection",
+      url: location.href,
+      families: entries.map((entry) => entry.family),
+      entries
+    };
+  } catch {
+    showCollectionMessage("Could not open shared collection.");
+    return {
+      id: null,
+      title: "Shared collection",
+      url: location.href,
+      families: [],
+      entries: []
+    };
+  }
+}
+
+function downloadFile(filename, text, type) {
+  const blob = new Blob([text], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    document.body.append(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    textarea.remove();
+  }
+}
+
+function safeFileName(name) {
+  return (name || "fontfox-collection")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 80) || "fontfox-collection";
 }
 
 async function renderOtherCollections() {
+  if (collectionState.shared || !globalThis.browser && !globalThis.chrome) {
+    collectionState.collections = [];
+    collectionEls.otherCollections.textContent = "";
+    const empty = document.createElement("p");
+    empty.className = "message";
+    empty.textContent = "Shared collection";
+    collectionEls.otherCollections.append(empty);
+    return;
+  }
+
   const collections = await BookmarkStore.listCollections();
   collectionState.collections = collections;
   collectionEls.otherCollections.textContent = "";
@@ -371,6 +557,11 @@ function closeCollectionContextMenu() {
   collectionState.contextCollection = null;
 }
 
+function closeMenus() {
+  closeCollectionContextMenu();
+  closeExportMenu();
+}
+
 async function renameContextCollection() {
   const collection = collectionState.contextCollection;
   closeCollectionContextMenu();
@@ -439,8 +630,8 @@ function iconClose() {
   return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>`;
 }
 
-function iconExport() {
-  return `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg>`;
+function iconShare() {
+  return `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="m8.6 13.5 6.8 4"></path><path d="m15.4 6.5-6.8 4"></path></svg>`;
 }
 
 function iconRows() {

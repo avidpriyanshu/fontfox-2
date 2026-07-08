@@ -4,6 +4,15 @@
     return;
   }
 
+  if (!globalThis.chrome) {
+    globalThis.ext = {
+      runtime: {
+        getURL: (path) => new URL(path, location.href).href
+      }
+    };
+    return;
+  }
+
   const promisifyNamespace = (namespace) => new Proxy(namespace, {
     get(target, prop) {
       const value = target[prop];
@@ -20,7 +29,18 @@
 
   globalThis.ext = {
     bookmarks: promisifyNamespace(chrome.bookmarks),
-    runtime: chrome.runtime,
+    runtime: {
+      ...chrome.runtime,
+      getURL: chrome.runtime.getURL.bind(chrome.runtime),
+      sendMessage: (...args) => new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage(...args, (result) => {
+          const error = chrome.runtime && chrome.runtime.lastError;
+          if (error) reject(new Error(error.message));
+          else resolve(result);
+        });
+      })
+    },
+    scripting: chrome.scripting ? promisifyNamespace(chrome.scripting) : null,
     storage: {
       local: promisifyNamespace(chrome.storage.local)
     },

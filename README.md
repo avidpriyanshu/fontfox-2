@@ -18,8 +18,10 @@ The extension stores collections as normal browser bookmarks:
 
 - It creates or finds a bookmark folder named `Fonts`.
 - Each collection is one bookmark inside that folder.
-- The bookmark URL is a Google Fonts share URL containing the saved font families.
-- Opening the bookmark previews that collection on Google Fonts.
+- The bookmark URL opens the extension collection page for that saved bookmark.
+- Font metadata is stored in extension storage and keyed by bookmark id.
+- The collection page can export Markdown, JSON, or a web share URL.
+- Web share URLs point at the GitHub Pages collection viewer and include the share data in the URL hash, so they can open in another browser or on another computer.
 
 The popup uses the active tab URL to detect fonts:
 
