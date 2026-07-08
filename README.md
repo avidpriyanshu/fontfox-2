@@ -22,6 +22,8 @@ The extension stores collections as normal browser bookmarks:
 - Font metadata is stored in extension storage and keyed by bookmark id.
 - The collection page can export Markdown, JSON, or a web share URL.
 - Web share URLs point at the GitHub Pages collection viewer and include the share data in the URL hash, so they can open in another browser or on another computer.
+- `Publish Web Share` uploads collection JSON and captured preview images to this repo through the GitHub Contents API, then copies a clean `?shareId=` URL.
+- Publishing requires a fine-grained GitHub token with read/write Contents access to this repository. The token is stored locally in extension storage.
 
 The popup uses the active tab URL to detect fonts:
 

@@ -30,18 +30,21 @@ const exportMenu = createExportMenu();
 
 async function initCollectionPage() {
   const params = new URL(location.href).searchParams;
+  const shareId = params.get("shareId");
+  if (shareId) {
+    collectionState.collection = await fetchHostedCollection(shareId);
+    collectionState.shared = true;
+    bindCollectionPageEvents();
+    renderCollectionPage();
+    return;
+  }
+
   const share = params.get("share") || parseShareHash(location.hash);
   if (share) {
     collectionState.collection = parseSharedCollection(share);
     collectionState.shared = true;
+    bindCollectionPageEvents();
     renderCollectionPage();
-    collectionEls.previewText.addEventListener("input", renderFontCards);
-    collectionEls.previewSizeRange.addEventListener("input", syncPreviewSizeFromRange);
-    collectionEls.clearPreview.addEventListener("click", clearPreview);
-    document.addEventListener("click", closeMenus);
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") closeMenus();
-    });
     return;
   }
 
@@ -54,7 +57,11 @@ async function initCollectionPage() {
   collectionState.collection = await BookmarkStore.getCollection(id);
   if (!collectionState.collection) return showCollectionMessage("Collection not found.");
 
+  bindCollectionPageEvents();
   renderCollectionPage();
+}
+
+function bindCollectionPageEvents() {
   collectionEls.previewText.addEventListener("input", renderFontCards);
   collectionEls.previewSizeRange.addEventListener("input", syncPreviewSizeFromRange);
   collectionEls.clearPreview.addEventListener("click", clearPreview);
@@ -317,13 +324,26 @@ function createExportMenu() {
   const menu = document.createElement("div");
   menu.className = "contextMenu exportMenu";
   menu.hidden = true;
+  document.body.append(menu);
+  return menu;
+}
 
-  [
+function renderExportMenu() {
+  exportMenu.textContent = "";
+
+  const actions = [
     ["Download Markdown", downloadMarkdown],
     ["Download JSON", downloadJson],
-    ["Copy Markdown", copyMarkdown],
-    ["Copy Web Share URL", copyShareUrl]
-  ].forEach(([label, action]) => {
+    ["Copy Markdown", copyMarkdown]
+  ];
+
+  if (!collectionState.shared) {
+    actions.push(["Publish Web Share", publishWebShare]);
+  }
+
+  actions.push(["Copy Web Share URL", copyShareUrl]);
+
+  actions.forEach(([label, action]) => {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = label;
@@ -332,15 +352,13 @@ function createExportMenu() {
       closeExportMenu();
       await action();
     });
-    menu.append(button);
+    exportMenu.append(button);
   });
-
-  document.body.append(menu);
-  return menu;
 }
 
 function openExportMenu(anchor) {
   closeCollectionContextMenu();
+  renderExportMenu();
   exportMenu.hidden = false;
   const anchorRect = anchor.getBoundingClientRect();
   const menuRect = exportMenu.getBoundingClientRect();
@@ -375,6 +393,13 @@ async function copyMarkdown() {
 async function copyShareUrl() {
   await copyText(collectionShareUrl());
   showCollectionMessage("Share URL copied.");
+}
+
+async function publishWebShare() {
+  showCollectionMessage("Publishing web share...");
+  const url = await GitHubPublisher.publishCollection(collectionState.collection);
+  await copyText(url);
+  showCollectionMessage("Published web share URL copied.");
 }
 
 function collectionMarkdown() {
@@ -432,6 +457,20 @@ function parseSharedCollection(share) {
       entries: []
     };
   }
+}
+
+async function fetchHostedCollection(shareId) {
+  const response = await fetch(`shares/${encodeURIComponent(shareId)}.json`, { cache: "no-store" });
+  if (!response.ok) throw new Error("Shared collection not found.");
+  const payload = await response.json();
+  const entries = Array.isArray(payload.entries) ? payload.entries.filter((entry) => entry?.family) : [];
+  return {
+    id: null,
+    title: payload.title || "Shared collection",
+    url: location.href,
+    families: entries.map((entry) => entry.family),
+    entries
+  };
 }
 
 function downloadFile(filename, text, type) {

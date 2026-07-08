@@ -9,11 +9,19 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "permissions": ["bookmarks", "tabs", "activeTab", "storage"],
-  "host_permissions": ["https://fonts.google.com/*", "https://fonts.googleapis.com/*"],
+  "permissions": ["bookmarks", "tabs", "activeTab", "storage", "scripting"],
+  "host_permissions": [
+    "https://fonts.google.com/*",
+    "https://fonts.googleapis.com/*",
+    "https://api.github.com/*"
+  ],
   "action": {
     "default_title": "Fontmark",
     "default_popup": "popup.html"
+  },
+  "background": {
+    "scripts": ["src/background.js"],
+    "service_worker": "src/background.js"
   },
   "browser_specific_settings": {
     "gecko": {

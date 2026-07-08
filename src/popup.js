@@ -1,5 +1,6 @@
 const state = {
   detected: null,
+  activeTab: null,
   collections: [],
   expandedId: null,
   draftCollection: null
@@ -32,6 +33,7 @@ function bindEvents() {
 
 async function detectCurrentPage() {
   const [tab] = await ext.tabs.query({ active: true, currentWindow: true });
+  state.activeTab = tab || null;
   state.detected = tab && tab.url ? FontSources.parseCurrentPage(tab.url) : null;
 
   if (!state.detected) {
@@ -191,7 +193,7 @@ function renderCollection(collection) {
     renderCollections();
   });
 
-  titleRow.append(title, editButton);
+  titleRow.append(title);
 
   const count = document.createElement("span");
   count.className = "fontCount";
@@ -199,7 +201,7 @@ function renderCollection(collection) {
 
   meta.append(titleRow, count);
 
-  main.append(icon, meta);
+  main.append(icon, meta, editButton);
   if (state.expandedId !== collection.id) {
     const action = document.createElement("button");
     action.type = "button";
@@ -339,11 +341,32 @@ async function toggleCurrentFonts(collection) {
     );
     showMessage("Font removed.");
   } else {
+    if (shouldCapturePreview()) {
+      await startPreviewSelection(collection);
+      return;
+    }
     await BookmarkStore.setFonts(collection, [...collection.entries, ...detectedEntries()]);
     showMessage("Font added.");
   }
 
   await renderCollections();
+}
+
+async function startPreviewSelection(collection) {
+  await ext.runtime.sendMessage({
+    type: "fontfox:start-preview-capture",
+    collectionId: collection.id,
+    entries: detectedEntries()
+  });
+  await PreviewCapture.openSelector(state.activeTab.id);
+  showMessage("Select preview area on the page.");
+  window.close();
+}
+
+function shouldCapturePreview() {
+  return Boolean(state.detected)
+    && state.detected.source !== "google-fonts"
+    && state.activeTab?.id;
 }
 
 async function openCollection(collection) {
@@ -358,12 +381,16 @@ function currentFontsAreSaved(collection) {
 }
 
 function detectedEntries() {
-  return state.detected?.entries || state.detected?.families.map((family) => ({
+  const entries = state.detected?.entries || state.detected?.families.map((family) => ({
     family,
     source: state.detected.source,
     sourceName: state.detected.source === "google-fonts" ? "Google Fonts" : state.detected.source,
     sourceUrl: state.detected.sourceUrl
   })) || [];
+
+  return entries.map((entry) => ({
+    ...entry
+  }));
 }
 
 function actionLabel(collection) {
