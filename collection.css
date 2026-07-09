@@ -447,6 +447,23 @@ textarea {
   -webkit-line-clamp: 4;
 }
 
+.capturedFontPreview {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  object-fit: contain;
+  object-position: center;
+  background: var(--panel);
+}
+
+.fontCard .capturedFontPreview {
+  min-height: 0;
+  aspect-ratio: auto;
+}
+
 .unavailablePreview {
   margin: 0;
   color: var(--quiet);
@@ -590,6 +607,10 @@ svg {
 
 .contextMenu .dangerMenuItem {
   color: var(--danger);
+}
+
+.exportMenu {
+  min-width: 178px;
 }
 
 @media (max-width: 820px) {

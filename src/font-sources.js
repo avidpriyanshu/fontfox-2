@@ -27,6 +27,37 @@ const FontSources = (() => {
       .join(" ");
   }
 
+  function makeEntry({ source, sourceName, sourceUrl, family, foundry, extra = {} }) {
+    return {
+      family,
+      source,
+      sourceName,
+      sourceUrl,
+      ...(foundry ? { foundry } : {}),
+      ...extra
+    };
+  }
+
+  function makeSourceResult(sourceConfig, sourceUrl, family, extra = {}) {
+    const entry = makeEntry({
+      source: sourceConfig.source,
+      sourceName: sourceConfig.sourceName,
+      sourceUrl,
+      family,
+      foundry: sourceConfig.foundry,
+      extra
+    });
+
+    return {
+      source: sourceConfig.source,
+      sourceName: sourceConfig.sourceName,
+      sourceUrl,
+      family,
+      families: [family],
+      entries: [entry]
+    };
+  }
+
   function knownCoTypeSummary(family) {
     if (family.toLowerCase() !== "ambit") return null;
     return {
@@ -39,6 +70,92 @@ const FontSources = (() => {
       summary: "Ambit is an eccentric contemporary sans serif inspired by early grotesques, with distinctive curly details and a strong branding/editorial personality."
     };
   }
+
+  function knownTightypeSummary(family) {
+    if (family.toLowerCase() !== "sneak") return null;
+    return {
+      category: "Sans serif",
+      foundry: "Tightype",
+      styles: "11 styles",
+      formats: ["OTF", "WOFF", "WOFF2"],
+      tags: ["neo-grotesque", "monospaced", "reversed characters", "stylistic sets"],
+      summary: "Sneak is a neo-grotesque typeface with distinctive reversed characters. It includes five weights with matching italics and a monospaced style."
+    };
+  }
+
+  const fontPageSources = [
+    {
+      hostnames: ["tightype.com", "www.tightype.com"],
+      pathPrefixes: ["typefaces"],
+      source: "tightype",
+      sourceName: "Tightype",
+      foundry: "Tightype",
+      knownSummary: knownTightypeSummary
+    },
+    {
+      hostnames: ["klim.co.nz", "www.klim.co.nz"],
+      pathPrefixes: ["retail-fonts"],
+      source: "klim-type-foundry",
+      sourceName: "Klim Type Foundry",
+      foundry: "Klim Type Foundry"
+    },
+    {
+      hostnames: ["commercialtype.com", "www.commercialtype.com"],
+      pathPrefixes: ["catalog"],
+      source: "commercial-type",
+      sourceName: "Commercial Type",
+      foundry: "Commercial Type"
+    },
+    {
+      hostnames: ["typotheque.com", "www.typotheque.com"],
+      pathPrefixes: ["fonts"],
+      source: "typotheque",
+      sourceName: "Typotheque",
+      foundry: "Typotheque"
+    },
+    {
+      hostnames: ["type.today", "www.type.today"],
+      pathPrefixes: ["en", "fonts"],
+      source: "type-today",
+      sourceName: "Type.today",
+      foundry: "Type.today"
+    },
+    {
+      hostnames: ["ohnotype.co", "www.ohnotype.co"],
+      pathPrefixes: ["fonts"],
+      source: "ohno-type",
+      sourceName: "OH no Type Co.",
+      foundry: "OH no Type Co."
+    },
+    {
+      hostnames: ["futurefonts.xyz", "www.futurefonts.xyz"],
+      pathPrefixes: ["typefaces"],
+      source: "future-fonts",
+      sourceName: "Future Fonts",
+      foundry: "Future Fonts"
+    },
+    {
+      hostnames: ["velvetyne.fr", "www.velvetyne.fr"],
+      pathPrefixes: ["fonts"],
+      source: "velvetyne",
+      sourceName: "Velvetyne",
+      foundry: "Velvetyne"
+    },
+    {
+      hostnames: ["pangrampangram.com", "www.pangrampangram.com"],
+      pathPrefixes: ["products"],
+      source: "pangram-pangram",
+      sourceName: "Pangram Pangram",
+      foundry: "Pangram Pangram"
+    },
+    {
+      hostnames: ["fontshare.com", "www.fontshare.com"],
+      pathPrefixes: ["fonts"],
+      source: "fontshare",
+      sourceName: "Fontshare",
+      foundry: "Fontshare"
+    }
+  ];
 
   function parseCoTypeUrl(urlText) {
     const url = new URL(urlText);
@@ -65,6 +182,91 @@ const FontSources = (() => {
         ...known
       }]
     };
+  }
+
+  function parseAdobeFontsUrl(urlText) {
+    const url = new URL(urlText);
+    const parts = url.pathname.split("/").filter(Boolean);
+
+    if (url.hostname !== "fonts.adobe.com" || parts[0] !== "fonts" || !parts[1]) {
+      return null;
+    }
+
+    const family = titleCaseSlug(parts[1]);
+    return {
+      source: "adobe-fonts",
+      sourceName: "Adobe Fonts",
+      sourceUrl: url.href,
+      family,
+      families: [family],
+      entries: [{
+        family,
+        source: "adobe-fonts",
+        sourceName: "Adobe Fonts",
+        sourceUrl: url.href
+      }]
+    };
+  }
+
+  function parseDaFontUrl(urlText) {
+    const url = new URL(urlText);
+    const match = url.pathname.match(/^\/([^/]+)\.font$/);
+
+    if (!url.hostname.endsWith("dafont.com") || !match) return null;
+
+    const family = titleCaseSlug(match[1]);
+    return {
+      source: "dafont",
+      sourceName: "DaFont",
+      sourceUrl: url.href,
+      family,
+      families: [family],
+      entries: [{
+        family,
+        source: "dafont",
+        sourceName: "DaFont",
+        sourceUrl: url.href
+      }]
+    };
+  }
+
+  function parse1001FontsUrl(urlText) {
+    const url = new URL(urlText);
+    const match = url.pathname.match(/^\/([^/]+)-font\.html$/);
+
+    if (url.hostname !== "www.1001fonts.com" || !match) return null;
+
+    const family = titleCaseSlug(match[1]);
+    return {
+      source: "1001-fonts",
+      sourceName: "1001 Fonts",
+      sourceUrl: url.href,
+      family,
+      families: [family],
+      entries: [{
+        family,
+        source: "1001-fonts",
+        sourceName: "1001 Fonts",
+        sourceUrl: url.href
+      }]
+    };
+  }
+
+  function parseConfiguredFontPageUrl(urlText) {
+    const url = new URL(urlText);
+    const parts = url.pathname.split("/").filter(Boolean);
+    const sourceConfig = fontPageSources.find((config) => (
+      config.hostnames.includes(url.hostname)
+      && parts.length > config.pathPrefixes.length
+      && config.pathPrefixes.every((part, index) => parts[index] === part)
+    ));
+
+    if (!sourceConfig) return null;
+
+    const familySlug = parts[sourceConfig.pathPrefixes.length];
+    const family = titleCaseSlug(familySlug);
+    const extra = sourceConfig.knownSummary?.(family) || {};
+    return family ? makeSourceResult(sourceConfig, url.href, family, extra) : null;
   }
 
   function parseCollectionUrl(urlText) {
@@ -98,7 +300,12 @@ const FontSources = (() => {
 
   function parseCurrentPage(urlText) {
     try {
-      return parseGoogleSpecimenUrl(urlText) || parseCoTypeUrl(urlText);
+      return parseGoogleSpecimenUrl(urlText)
+        || parseCoTypeUrl(urlText)
+        || parseAdobeFontsUrl(urlText)
+        || parseDaFontUrl(urlText)
+        || parse1001FontsUrl(urlText)
+        || parseConfiguredFontPageUrl(urlText);
     } catch {
       return null;
     }

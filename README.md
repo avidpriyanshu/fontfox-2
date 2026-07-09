@@ -7,7 +7,7 @@ It keeps font collections in browser bookmarks, captures previews from foundry p
 ## Features
 
 - Save font families into bookmark-backed collections.
-- Detect fonts from Google Fonts, Adobe Fonts, CoType Foundry, DaFont, and 1001 Fonts pages.
+- Detect fonts from Google Fonts, Adobe Fonts, CoType Foundry, Tightype, DaFont, 1001 Fonts, and other foundry pages.
 - Preview Google Fonts with live text controls.
 - Capture image previews for fonts that cannot be rendered directly.
 - Export collections as Markdown or JSON.
